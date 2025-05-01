@@ -6,10 +6,10 @@ packages = ["cairo", "ffmpeg-full", "freetype", "ghostscript", "glibcLocales", "
 
 [deployment]
 deploymentTarget = "autoscale"
-run = ["streamlit", "run", "app.py", "--server.port", "5000"]
+run = ["sh", "-c", "streamlit run app.py --server.port 5000 --server.address 0.0.0.0 --server.headless true --server.enableCORS false --server.enableXsrfProtection true"]
 
 [workflows]
-runButton = "Project"
+runButton = "Production"
 
 [[workflows.workflow]]
 name = "Project"
@@ -37,6 +37,24 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "streamlit run app.py --server.port 5000"
+
+[[workflows.workflow]]
+name = "Development"
+author = 42147260
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "streamlit run app.py --server.port 5000 --server.address 0.0.0.0 --server.headless false --server.enableCORS true --server.enableXsrfProtection false"
+
+[[workflows.workflow]]
+name = "Production"
+author = 42147260
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "streamlit run app.py --server.port 5000 --server.address 0.0.0.0 --server.headless true --server.enableCORS false --server.enableXsrfProtection true"
 
 [[ports]]
 localPort = 5000
