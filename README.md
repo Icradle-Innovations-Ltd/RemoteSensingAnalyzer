@@ -249,6 +249,62 @@ The app will be available at http://0.0.0.0:5000
 
 The Remote Sensing Data Analyzer is a proprietary tool designed for professional satellite image analysis and interpretation. All data analysis and visualizations are for informational purposes only.
 
+## Setup Instructions
+
+### Local Environment Setup
+
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd remote-sensing-data-analyzer
+```
+
+2. Install required packages:
+```bash
+pip install -r requirements.txt
+```
+
+3. Create a `.env` file with required API keys:
+```
+OPENAI_API_KEY=your_openai_key
+ANTHROPIC_API_KEY=your_anthropic_key
+XAI_API_KEY=your_xai_key
+EARTHENGINE_USER=your_ee_username
+EARTHENGINE_PASSWORD=your_ee_password
+SENTINEL_USER=your_sentinel_username
+SENTINEL_PASSWORD=your_sentinel_password
+```
+
+4. Run the application:
+```bash
+streamlit run app.py --server.port 5000
+```
+
+The application will be available at http://0.0.0.0:5000
+
+### Production Environment Setup (Replit)
+
+1. Create a new Python Repl and upload project files
+2. Set up environment variables in Replit Secrets:
+   - Go to "Tools" → "Secrets"
+   - Add all required API keys and credentials
+3. Install dependencies:
+   - They will be automatically installed from requirements.txt
+4. Configure the deployment:
+   - Go to "Tools" → "Deployments"
+   - The deployment configuration is already set in .replit file
+5. Deploy:
+   - Click "Deploy" in the Deployments tab
+   - Your app will be available at your-repl-name.your-username.repl.co
+
+### Production Health Checks
+
+- Monitor the application logs in the Replit console
+- Check the "Deployments" tab for deployment status
+- Verify API integrations are working properly
+- Monitor memory usage and performance metrics
+- Check satellite data source connectivity
+
 ## Support & Contact
 
 For technical support, feature requests, or bug reports, please use the project's issue tracker or contact our support team through the application's help interface.
