@@ -238,7 +238,12 @@ The web interface works best with:
 
 ### Local Setup
 
-1. Clone the repository
+1. Clone the repository:
+```bash
+git clone https://github.com/Icradle-Innovations-Ltd/RemoteSensingAnalyzer.git
+cd RemoteSensingAnalyzer
+```
+
 2. Install dependencies:
 ```bash
 pip install -r requirements.txt
@@ -264,9 +269,14 @@ The app will be available at http://0.0.0.0:5000
 
 ### Deployment on Render
 
+#### Option 1: Deploy from GitHub
+
 1. **Create a new Web Service on Render**:
-   - Connect your GitHub repository
-   - Select the repository containing the Remote Sensing Data Analyzer
+   - Sign in to your Render account
+   - Go to the Dashboard and click "New +"
+   - Select "Web Service"
+   - Connect your GitHub account if you haven't already
+   - Select the repository: `Icradle-Innovations-Ltd/RemoteSensingAnalyzer`
 
 2. **Configure the Web Service**:
    - Name: `remote-sensing-analyzer` (or your preferred name)
@@ -288,6 +298,51 @@ The app will be available at http://0.0.0.0:5000
    - Render will automatically build and deploy your application
 
 5. **Access Your Application**:
+   - Once deployment is complete, your app will be available at the URL provided by Render
+
+#### Option 2: Deploy from Your Local Repository
+
+1. **Push your code to GitHub**:
+   ```bash
+   # Initialize Git repository (if not already done)
+   git init
+   
+   # Add the remote repository
+   git remote add origin https://github.com/Icradle-Innovations-Ltd/RemoteSensingAnalyzer.git
+   
+   # Add all files
+   git add .
+   
+   # Commit changes
+   git commit -m "Initial commit"
+   
+   # Push to GitHub
+   git push -u origin main
+   ```
+
+2. **Follow the steps in Option 1 to deploy from GitHub**
+
+#### Option 3: One-Click Deployment with Render Blueprint
+
+This repository includes a `render.yaml` file that defines the infrastructure needed to run the application.
+
+1. **Fork the repository**:
+   - Visit https://github.com/Icradle-Innovations-Ltd/RemoteSensingAnalyzer
+   - Click the "Fork" button in the top-right corner
+
+2. **Deploy to Render**:
+   - Go to https://dashboard.render.com/blueprints
+   - Click "New Blueprint Instance"
+   - Connect your GitHub account if you haven't already
+   - Select your forked repository
+   - Click "Apply Blueprint"
+
+3. **Configure Environment Variables**:
+   - After the services are created, go to each service
+   - Add the required environment variables
+   - Reference the `.env.example` file for the required variables
+
+4. **Access Your Application**:
    - Once deployment is complete, your app will be available at the URL provided by Render
 
 > **Important Note About the Build Command**:  
@@ -328,6 +383,56 @@ If you encounter issues during deployment, here are some common problems and sol
 5. **Missing Environment Variables**:
    - If the application fails to start, check that all required environment variables are set in the Render dashboard
    - Refer to the `.env.example` file for the required variables
+
+### Git Commands for Contributing
+
+To contribute to this project, follow these steps:
+
+1. **Fork the repository**:
+   - Visit https://github.com/Icradle-Innovations-Ltd/RemoteSensingAnalyzer
+   - Click the "Fork" button in the top-right corner
+
+2. **Clone your fork**:
+   ```bash
+   git clone https://github.com/YOUR-USERNAME/RemoteSensingAnalyzer.git
+   cd RemoteSensingAnalyzer
+   ```
+
+3. **Add the upstream remote**:
+   ```bash
+   git remote add upstream https://github.com/Icradle-Innovations-Ltd/RemoteSensingAnalyzer.git
+   ```
+
+4. **Create a new branch for your feature**:
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+
+5. **Make your changes and commit them**:
+   ```bash
+   git add .
+   git commit -m "Add your meaningful commit message here"
+   ```
+
+6. **Push your changes to your fork**:
+   ```bash
+   git push origin feature/your-feature-name
+   ```
+
+7. **Create a pull request**:
+   - Go to https://github.com/Icradle-Innovations-Ltd/RemoteSensingAnalyzer
+   - Click "Pull requests" > "New pull request"
+   - Select "compare across forks"
+   - Select your fork and branch
+   - Click "Create pull request"
+
+8. **Keep your fork in sync with the upstream repository**:
+   ```bash
+   git fetch upstream
+   git checkout main
+   git merge upstream/main
+   git push origin main
+   ```
 
 ### Docker Deployment
 
