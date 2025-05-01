@@ -7,6 +7,7 @@ import os
 import time
 import base64
 import json
+import re
 from datetime import datetime
 from dotenv import load_dotenv
 
@@ -230,7 +231,7 @@ with st.sidebar:
 # Main content area
 if st.session_state.preprocessed_image is not None:
     # Create tabs for visualization and analysis
-    main_tabs = st.tabs(["Visualization", "AI Analysis", "Report Generation"])
+    main_tabs = st.tabs(["Visualization", "AI Analysis", "Report Generation", "Settings"])
     
     # Visualization Tab
     with main_tabs[0]:
@@ -310,13 +311,39 @@ if st.session_state.preprocessed_image is not None:
                     if 'selected_ai_provider' not in st.session_state:
                         st.session_state.selected_ai_provider = "openai"
                         
-                    # Run AI analysis with selected provider
-                    analysis_results = ai_providers.analyze_satellite_image(
-                        st.session_state.preprocessed_image,
-                        st.session_state.filtered_image,
-                        filter_type,
-                        provider=st.session_state.selected_ai_provider
-                    )
+                    # Get available providers and check if selected provider is available
+                    available_providers = ai_providers.get_available_providers()
+                    
+                    if len(available_providers) == 0:
+                        analysis_results = {
+                            "error": "No AI providers available. Please add your API keys in the Settings tab.",
+                            "features_detected": [],
+                            "filter_effects": [],
+                            "environmental_patterns": [],
+                            "applications": [],
+                            "recommendations": [],
+                            "summary": "Error: No AI API keys configured. Go to Settings tab to add your API keys."
+                        }
+                    elif st.session_state.selected_ai_provider not in available_providers:
+                        # If selected provider is not available, use the first available one
+                        st.session_state.selected_ai_provider = available_providers[0]
+                        st.info(f"Selected provider not available. Using {available_providers[0]} instead.")
+                        
+                        # Run AI analysis with available provider
+                        analysis_results = ai_providers.analyze_satellite_image(
+                            st.session_state.preprocessed_image,
+                            st.session_state.filtered_image,
+                            filter_type,
+                            provider=st.session_state.selected_ai_provider
+                        )
+                    else:
+                        # Run AI analysis with selected provider
+                        analysis_results = ai_providers.analyze_satellite_image(
+                            st.session_state.preprocessed_image,
+                            st.session_state.filtered_image,
+                            filter_type,
+                            provider=st.session_state.selected_ai_provider
+                        )
                     
                     # Store results
                     st.session_state.ai_analysis_results = analysis_results
@@ -378,7 +405,7 @@ if st.session_state.preprocessed_image is not None:
         if st.button("Generate Report", key="gen_report_btn"):
             if st.session_state.img_info and st.session_state.last_filter_params:
                 # Generate report
-                report = ai_analysis.generate_full_report(
+                report = ai_providers.generate_full_report(
                     st.session_state.img_info,
                     st.session_state.last_filter_params,
                     st.session_state.ai_analysis_results
@@ -409,12 +436,182 @@ if st.session_state.preprocessed_image is not None:
                 )
         else:
             st.info("Click 'Generate Report' to create a comprehensive analysis report.")
+    # Settings Tab
+    with main_tabs[3]:
+        st.subheader("Application Settings")
+        st.markdown("""
+        Configure your API keys and satellite data sources here. 
+        These settings will be saved to your .env file for future use.
+        """)
+        
+        # AI Model Settings
+        st.subheader("AI Model Configuration")
+        
+        # Get available providers
+        available_providers = ai_providers.get_available_providers()
+        if not available_providers:
+            st.warning("No AI providers are currently configured. Add your API keys below.")
+        else:
+            st.success(f"Available AI providers: {', '.join(available_providers)}")
+            
+            # Select AI provider for analysis
+            selected_provider = st.selectbox(
+                "Select AI provider for analysis:",
+                available_providers if available_providers else ["openai", "anthropic", "xai"],
+                index=0 if "openai" not in available_providers else available_providers.index("openai"),
+                key="provider_select"
+            )
+            
+            # Update session state with selected provider
+            if st.button("Set as Default Provider"):
+                st.session_state.selected_ai_provider = selected_provider
+                st.success(f"Default provider set to {selected_provider}")
+                
+        # API Key Management
+        st.subheader("API Key Management")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("##### OpenAI API Key")
+            openai_key = st.text_input(
+                "Enter your OpenAI API key:",
+                type="password",
+                key="openai_key_input",
+                help="Get your API key from https://platform.openai.com/api-keys"
+            )
+            
+            st.markdown("##### xAI (Grok) API Key")
+            xai_key = st.text_input(
+                "Enter your xAI API key:",
+                type="password",
+                key="xai_key_input",
+                help="Get your API key from xAI"
+            )
+        
+        with col2:
+            st.markdown("##### Anthropic API Key")
+            anthropic_key = st.text_input(
+                "Enter your Anthropic API key:",
+                type="password",
+                key="anthropic_key_input",
+                help="Get your API key from https://console.anthropic.com/"
+            )
+            
+            # Space for alignment
+            st.write("")
+            st.write("")
+            
+        # Save API keys button
+        if st.button("Save API Keys to .env"):
+            # Read existing .env file
+            try:
+                with open('.env', 'r') as f:
+                    env_content = f.read()
+                    
+                # Update API keys if provided
+                if openai_key:
+                    if 'OPENAI_API_KEY=' in env_content:
+                        env_content = re.sub(r'OPENAI_API_KEY=.*', f'OPENAI_API_KEY={openai_key}', env_content)
+                    else:
+                        env_content += f'\nOPENAI_API_KEY={openai_key}'
+                
+                if anthropic_key:
+                    if 'ANTHROPIC_API_KEY=' in env_content:
+                        env_content = re.sub(r'ANTHROPIC_API_KEY=.*', f'ANTHROPIC_API_KEY={anthropic_key}', env_content)
+                    else:
+                        env_content += f'\nANTHROPIC_API_KEY={anthropic_key}'
+                
+                if xai_key:
+                    if 'XAI_API_KEY=' in env_content:
+                        env_content = re.sub(r'XAI_API_KEY=.*', f'XAI_API_KEY={xai_key}', env_content)
+                    else:
+                        env_content += f'\nXAI_API_KEY={xai_key}'
+                
+                # Write updated content back to .env
+                with open('.env', 'w') as f:
+                    f.write(env_content)
+                
+                st.success("API keys saved successfully! Reload the application to apply changes.")
+                st.info("Click the 'Reload App' button below to reload with new API keys.")
+                
+                # Reload button
+                if st.button("Reload App"):
+                    st.experimental_rerun()
+                    
+            except Exception as e:
+                st.error(f"Error saving API keys: {str(e)}")
+        
+        # Satellite Data Sources
+        st.subheader("Satellite Data Sources")
+        
+        # Check available satellite sources
+        available_sources = satellite_fetcher.get_available_sources()
+        if not available_sources:
+            st.warning("No satellite data sources are configured. Add your credentials below.")
+        else:
+            st.success(f"Available satellite data sources: {', '.join(available_sources)}")
+        
+        # Earth Engine credentials
+        st.markdown("##### Google Earth Engine")
+        ee_user = st.text_input("Earth Engine Username:", key="ee_user")
+        ee_password = st.text_input("Earth Engine Password:", type="password", key="ee_pass")
+        
+        # Sentinel Hub credentials
+        st.markdown("##### Sentinel Hub")
+        sentinel_user = st.text_input("Sentinel Hub Username:", key="sentinel_user")
+        sentinel_password = st.text_input("Sentinel Hub Password:", type="password", key="sentinel_pass")
+        
+        # Save satellite credentials
+        if st.button("Save Satellite Credentials"):
+            # Read existing .env file
+            try:
+                with open('.env', 'r') as f:
+                    env_content = f.read()
+                    
+                # Update credentials if provided
+                if ee_user:
+                    if 'EARTHENGINE_USER=' in env_content:
+                        env_content = re.sub(r'EARTHENGINE_USER=.*', f'EARTHENGINE_USER={ee_user}', env_content)
+                    else:
+                        env_content += f'\nEARTHENGINE_USER={ee_user}'
+                
+                if ee_password:
+                    if 'EARTHENGINE_PASSWORD=' in env_content:
+                        env_content = re.sub(r'EARTHENGINE_PASSWORD=.*', f'EARTHENGINE_PASSWORD={ee_password}', env_content)
+                    else:
+                        env_content += f'\nEARTHENGINE_PASSWORD={ee_password}'
+                
+                if sentinel_user:
+                    if 'SENTINEL_USER=' in env_content:
+                        env_content = re.sub(r'SENTINEL_USER=.*', f'SENTINEL_USER={sentinel_user}', env_content)
+                    else:
+                        env_content += f'\nSENTINEL_USER={sentinel_user}'
+                
+                if sentinel_password:
+                    if 'SENTINEL_PASSWORD=' in env_content:
+                        env_content = re.sub(r'SENTINEL_PASSWORD=.*', f'SENTINEL_PASSWORD={sentinel_password}', env_content)
+                    else:
+                        env_content += f'\nSENTINEL_PASSWORD={sentinel_password}'
+                
+                # Write updated content back to .env
+                with open('.env', 'w') as f:
+                    f.write(env_content)
+                
+                st.success("Satellite credentials saved successfully! Reload the application to apply changes.")
+                
+                # Reload button
+                if st.button("Reload App", key="reload_satellite"):
+                    st.experimental_rerun()
+                    
+            except Exception as e:
+                st.error(f"Error saving satellite credentials: {str(e)}")
 else:
     # Display documentation and app information when no image is uploaded
     st.info("👈 Please upload an image using the sidebar to begin analysis.")
     
     # Create tabs for different documentation sections
-    doc_tabs = st.tabs(["About", "Tutorial", "Frequency Domain Guide", "Examples", "Interpretation Guide"])
+    doc_tabs = st.tabs(["About", "Tutorial", "Frequency Domain Guide", "Examples", "Interpretation Guide", "Settings"])
     
     with doc_tabs[0]:
         st.markdown(documentation.get_documentation_section("about"))
@@ -430,6 +627,163 @@ else:
         
     with doc_tabs[4]:
         st.markdown(documentation.get_documentation_section("interpretation"))
+        
+    # Settings Tab (when no image is loaded)
+    with doc_tabs[5]:
+        st.subheader("Application Settings")
+        st.markdown("""
+        Configure your API keys and satellite data sources here. 
+        These settings will be saved to your .env file for future use.
+        """)
+        
+        # AI Model Settings
+        st.subheader("AI Model Configuration")
+        
+        # Get available providers
+        available_providers = ai_providers.get_available_providers()
+        if not available_providers:
+            st.warning("No AI providers are currently configured. Add your API keys below.")
+        else:
+            st.success(f"Available AI providers: {', '.join(available_providers)}")
+            
+        # API Key Management
+        st.subheader("API Key Management")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("##### OpenAI API Key")
+            openai_key = st.text_input(
+                "Enter your OpenAI API key:",
+                type="password",
+                key="openai_key_input_doc",
+                help="Get your API key from https://platform.openai.com/api-keys"
+            )
+            
+            st.markdown("##### xAI (Grok) API Key")
+            xai_key = st.text_input(
+                "Enter your xAI API key:",
+                type="password",
+                key="xai_key_input_doc",
+                help="Get your API key from xAI"
+            )
+        
+        with col2:
+            st.markdown("##### Anthropic API Key")
+            anthropic_key = st.text_input(
+                "Enter your Anthropic API key:",
+                type="password",
+                key="anthropic_key_input_doc",
+                help="Get your API key from https://console.anthropic.com/"
+            )
+            
+            # Space for alignment
+            st.write("")
+            st.write("")
+            
+        # Save API keys button
+        if st.button("Save API Keys to .env", key="save_api_keys_doc"):
+            # Read existing .env file
+            try:
+                with open('.env', 'r') as f:
+                    env_content = f.read()
+                    
+                # Update API keys if provided
+                if openai_key:
+                    if 'OPENAI_API_KEY=' in env_content:
+                        env_content = re.sub(r'OPENAI_API_KEY=.*', f'OPENAI_API_KEY={openai_key}', env_content)
+                    else:
+                        env_content += f'\nOPENAI_API_KEY={openai_key}'
+                
+                if anthropic_key:
+                    if 'ANTHROPIC_API_KEY=' in env_content:
+                        env_content = re.sub(r'ANTHROPIC_API_KEY=.*', f'ANTHROPIC_API_KEY={anthropic_key}', env_content)
+                    else:
+                        env_content += f'\nANTHROPIC_API_KEY={anthropic_key}'
+                
+                if xai_key:
+                    if 'XAI_API_KEY=' in env_content:
+                        env_content = re.sub(r'XAI_API_KEY=.*', f'XAI_API_KEY={xai_key}', env_content)
+                    else:
+                        env_content += f'\nXAI_API_KEY={xai_key}'
+                
+                # Write updated content back to .env
+                with open('.env', 'w') as f:
+                    f.write(env_content)
+                
+                st.success("API keys saved successfully! Reload the application to apply changes.")
+                
+                # Reload button
+                if st.button("Reload App", key="reload_app_doc"):
+                    st.experimental_rerun()
+                    
+            except Exception as e:
+                st.error(f"Error saving API keys: {str(e)}")
+            
+        # Satellite Data Sources
+        st.subheader("Satellite Data Sources")
+        
+        # Check available satellite sources
+        available_sources = satellite_fetcher.get_available_sources()
+        if not available_sources:
+            st.warning("No satellite data sources are configured. Add your credentials below.")
+        else:
+            st.success(f"Available satellite data sources: {', '.join(available_sources)}")
+            
+        # Earth Engine credentials
+        st.markdown("##### Google Earth Engine")
+        ee_user = st.text_input("Earth Engine Username:", key="ee_user_doc")
+        ee_password = st.text_input("Earth Engine Password:", type="password", key="ee_pass_doc")
+        
+        # Sentinel Hub credentials
+        st.markdown("##### Sentinel Hub")
+        sentinel_user = st.text_input("Sentinel Hub Username:", key="sentinel_user_doc")
+        sentinel_password = st.text_input("Sentinel Hub Password:", type="password", key="sentinel_pass_doc")
+        
+        # Save satellite credentials
+        if st.button("Save Satellite Credentials", key="save_satellite_creds_doc"):
+            # Read existing .env file
+            try:
+                with open('.env', 'r') as f:
+                    env_content = f.read()
+                    
+                # Update credentials if provided
+                if ee_user:
+                    if 'EARTHENGINE_USER=' in env_content:
+                        env_content = re.sub(r'EARTHENGINE_USER=.*', f'EARTHENGINE_USER={ee_user}', env_content)
+                    else:
+                        env_content += f'\nEARTHENGINE_USER={ee_user}'
+                
+                if ee_password:
+                    if 'EARTHENGINE_PASSWORD=' in env_content:
+                        env_content = re.sub(r'EARTHENGINE_PASSWORD=.*', f'EARTHENGINE_PASSWORD={ee_password}', env_content)
+                    else:
+                        env_content += f'\nEARTHENGINE_PASSWORD={ee_password}'
+                
+                if sentinel_user:
+                    if 'SENTINEL_USER=' in env_content:
+                        env_content = re.sub(r'SENTINEL_USER=.*', f'SENTINEL_USER={sentinel_user}', env_content)
+                    else:
+                        env_content += f'\nSENTINEL_USER={sentinel_user}'
+                
+                if sentinel_password:
+                    if 'SENTINEL_PASSWORD=' in env_content:
+                        env_content = re.sub(r'SENTINEL_PASSWORD=.*', f'SENTINEL_PASSWORD={sentinel_password}', env_content)
+                    else:
+                        env_content += f'\nSENTINEL_PASSWORD={sentinel_password}'
+                
+                # Write updated content back to .env
+                with open('.env', 'w') as f:
+                    f.write(env_content)
+                
+                st.success("Satellite credentials saved successfully! Reload the application to apply changes.")
+                
+                # Reload button
+                if st.button("Reload App", key="reload_satellite_doc"):
+                    st.experimental_rerun()
+                    
+            except Exception as e:
+                st.error(f"Error saving satellite credentials: {str(e)}")
 
 # Footer
 st.markdown("---")
