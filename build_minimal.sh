@@ -4,29 +4,51 @@ set -o errexit
 
 echo "Starting minimal build process..."
 
-# Install system dependencies
-apt-get update -y
-apt-get install -y --no-install-recommends \
-    python3-dev \
-    python3-pip \
-    python3-venv \
-    gdal-bin \
-    libgdal-dev \
-    python3-gdal \
-    python3-numpy \
-    python3-matplotlib \
-    python3-pillow \
-    python3-scipy \
-    python3-sklearn \
-    python3-skimage \
-    python3-opencv \
-    python3-requests \
-    python3-yaml \
-    python3-dotenv \
-    wget \
-    unzip
+# Check if we're running in Render
+if [ -n "$RENDER" ]; then
+  echo "Running in Render environment - skipping system package installation"
+  # Render already has these packages installed
+else
+  # Install system dependencies (for local development)
+  echo "Installing system dependencies..."
+  apt-get update -y || true
+  apt-get install -y --no-install-recommends \
+      python3-dev \
+      python3-pip \
+      python3-venv \
+      gdal-bin \
+      libgdal-dev \
+      python3-gdal \
+      python3-numpy \
+      python3-matplotlib \
+      python3-pillow \
+      python3-scipy \
+      python3-sklearn \
+      python3-skimage \
+      python3-opencv \
+      python3-requests \
+      python3-yaml \
+      python3-dotenv \
+      wget \
+      unzip || true
+  
+  echo "System packages installed"
+fi
 
-echo "System packages installed"
+# Check if GDAL is installed
+if command -v gdal-config >/dev/null 2>&1; then
+  echo "GDAL version:"
+  gdal-config --version
+else
+  echo "GDAL not found, will try to continue anyway"
+fi
+
+# Create and use a virtual environment in Render
+if [ -n "$RENDER" ]; then
+  echo "Creating virtual environment for Render..."
+  python -m venv .venv
+  source .venv/bin/activate
+fi
 
 # Upgrade pip
 pip install --upgrade pip
@@ -56,8 +78,11 @@ echo "Installing minimal requirements..."
 pip install -r minimal_requirements.txt || true
 
 # Create a simple wrapper for GDAL that uses the system installation
-mkdir -p /opt/render/project/src/.venv/lib/python3.11/site-packages/pyproj
-cat > /opt/render/project/src/.venv/lib/python3.11/site-packages/pyproj/__init__.py << EOF
+echo "Creating pyproj wrapper..."
+PYTHON_VERSION=$(python -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
+SITE_PACKAGES_DIR=".venv/lib/python${PYTHON_VERSION}/site-packages/pyproj"
+mkdir -p "$SITE_PACKAGES_DIR" || true
+cat > "$SITE_PACKAGES_DIR/__init__.py" << EOF
 # Wrapper for system pyproj
 import sys
 import os
@@ -97,10 +122,10 @@ EOF
 echo "Created minimal pyproj wrapper"
 
 # Create app directory if it doesn't exist
-mkdir -p /opt/render/project/src/app
+mkdir -p app || true
 
 # Create a simple test file to verify the installation
-cat > /opt/render/project/src/test_imports.py << EOF
+cat > test_imports.py << EOF
 print("Testing imports...")
 
 try:
@@ -138,6 +163,6 @@ EOF
 
 # Run the test file
 echo "Testing imports..."
-python3 /opt/render/project/src/test_imports.py
+python test_imports.py
 
 echo "Minimal build completed successfully!"

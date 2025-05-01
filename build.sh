@@ -37,7 +37,8 @@ fi
 # Check if PROJ is installed
 if command -v proj >/dev/null 2>&1; then
   echo "PROJ version:"
-  proj --version
+  # Different versions of proj use different flags for version
+  proj 2>&1 | head -n 1 || echo "Using PROJ but couldn't determine version"
 else
   echo "PROJ not found, will try to continue anyway"
 fi
