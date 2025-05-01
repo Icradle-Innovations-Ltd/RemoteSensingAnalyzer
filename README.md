@@ -21,7 +21,7 @@ This application provides a powerful platform for environmental scientists, GIS 
 
 1. **Run the Installation Script**:
    ```
-   install.bat
+   .\install.bat
    ```
    This script will:
    - Create a virtual environment
