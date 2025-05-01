@@ -526,9 +526,10 @@ with st.sidebar:
                                 if 'texture' in local_results:
                                     texture_type = local_results['texture'].get('type', 'Unknown')
                                     st.write(f"Texture type: {texture_type}")
-                                    
-                                # Show detailed analysis in expander
-                                with st.expander("View Full Analysis Report"):
+                                
+                                # Add a button to view the full report
+                                if st.button("View Full Analysis Report"):
+                                    st.markdown("## Full Analysis Report")
                                     st.markdown(local_report)
                 
                 # Geo-referenced overlay is only applicable for GeoTIFF
