@@ -287,7 +287,9 @@ The app will be available at http://0.0.0.0:5000
      (This tells Render to run your Streamlit app using the port assigned by Render)
    - Select the appropriate plan (Free tier works for testing)
    
-   > **Note**: If you encounter build issues with geospatial dependencies (especially pyproj), try using the alternative build script: `./build_alt.sh`
+   > **Note**: If you encounter build issues with geospatial dependencies (especially pyproj), try one of these alternative build scripts:
+   > - `./build_alt.sh` - Uses pre-built wheels and multiple fallback options for pyproj
+   > - `./build_minimal.sh` - Uses system packages and minimal wrappers as a last resort
 
 3. **Set Environment Variables**:
    - Add all the required API keys and credentials as environment variables
@@ -365,8 +367,10 @@ If you encounter issues during deployment, here are some common problems and sol
 
 1. **pyproj Compilation Errors**:
    - Error message: `Cannot assign type 'void (void *, int, const char *) except * nogil' to 'PJ_LOG_FUNCTION'`
-   - Solution: Use the alternative build script by changing the build command to `./build_alt.sh`
-   - This script installs a specific version of pyproj (3.2.0) that's known to work with Render
+   - Solution 1: Use the alternative build script by changing the build command to `./build_alt.sh`
+     - This script tries multiple approaches to install pyproj, including pre-built wheels
+   - Solution 2: If that still fails, use the minimal build script: `./build_minimal.sh`
+     - This script uses system packages and creates minimal wrappers for problematic packages
 
 2. **GDAL Installation Issues**:
    - If you see errors related to GDAL installation, try modifying the build script to use a specific GDAL version
