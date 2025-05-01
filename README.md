@@ -403,14 +403,59 @@ To contribute to this project, follow these steps:
    git remote add upstream https://github.com/Icradle-Innovations-Ltd/RemoteSensingAnalyzer.git
    ```
 
-4. **Create a new branch for your feature**:
+4. **Working with branches**:
+
+   **List all branches**:
    ```bash
+   # List local branches
+   git branch
+   
+   # List all branches (local and remote)
+   git branch -a
+   ```
+
+   **Create a new branch**:
+   ```bash
+   # Create a new branch and switch to it
    git checkout -b feature/your-feature-name
+   
+   # Alternative method (Git 2.23+)
+   git switch -c feature/your-feature-name
+   ```
+
+   **Switch between branches**:
+   ```bash
+   # Switch to an existing branch
+   git checkout branch-name
+   
+   # Alternative method (Git 2.23+)
+   git switch branch-name
+   
+   # Switch to the main branch
+   git checkout main
+   ```
+
+   **Delete a branch**:
+   ```bash
+   # Delete a local branch (after merging)
+   git branch -d branch-name
+   
+   # Force delete a local branch (even if not merged)
+   git branch -D branch-name
+   
+   # Delete a remote branch
+   git push origin --delete branch-name
    ```
 
 5. **Make your changes and commit them**:
    ```bash
+   # Stage all changes
    git add .
+   
+   # Stage specific files
+   git add file1.py file2.py
+   
+   # Commit changes
    git commit -m "Add your meaningful commit message here"
    ```
 
@@ -428,11 +473,145 @@ To contribute to this project, follow these steps:
 
 8. **Keep your fork in sync with the upstream repository**:
    ```bash
+   # Fetch changes from upstream
    git fetch upstream
+   
+   # Switch to your main branch
    git checkout main
+   
+   # Merge upstream changes
    git merge upstream/main
+   
+   # Push changes to your fork
    git push origin main
    ```
+
+9. **Update your feature branch with latest changes**:
+   ```bash
+   # Switch to main and get updates
+   git checkout main
+   git pull upstream main
+   
+   # Switch back to your feature branch
+   git checkout feature/your-feature-name
+   
+   # Merge changes from main
+   git merge main
+   
+   # Resolve any conflicts if they occur
+   # Then push the updated branch
+   git push origin feature/your-feature-name
+   ```
+
+### Common Git Operations and Troubleshooting
+
+#### Viewing Changes
+
+```bash
+# Show status of working directory
+git status
+
+# Show changes between working directory and last commit
+git diff
+
+# Show changes that are staged
+git diff --staged
+
+# Show commit history
+git log
+
+# Show commit history with graph visualization
+git log --graph --oneline --all
+```
+
+#### Undoing Changes
+
+```bash
+# Discard changes in working directory for a specific file
+git checkout -- filename
+
+# Discard all changes in working directory
+git checkout -- .
+
+# Unstage a file (keep the changes in working directory)
+git restore --staged filename
+
+# Amend the last commit (e.g., to fix commit message or add forgotten files)
+git commit --amend
+
+# Revert a commit (creates a new commit that undoes changes)
+git revert commit-hash
+
+# Reset to a previous commit (caution: destructive operation)
+git reset --hard commit-hash
+```
+
+#### Stashing Changes
+
+```bash
+# Temporarily save changes without committing
+git stash save "work in progress"
+
+# List stashed changes
+git stash list
+
+# Apply most recent stash and keep it in the stash list
+git stash apply
+
+# Apply most recent stash and remove it from the stash list
+git stash pop
+
+# Apply a specific stash
+git stash apply stash@{n}
+
+# Clear all stashes
+git stash clear
+```
+
+#### Resolving Merge Conflicts
+
+When a merge conflict occurs:
+
+1. **Identify conflicted files**:
+   ```bash
+   git status
+   ```
+
+2. **Open the conflicted files** and look for conflict markers (`<<<<<<<`, `=======`, `>>>>>>>`):
+   - Between `<<<<<<< HEAD` and `=======` is your current branch's code
+   - Between `=======` and `>>>>>>> branch-name` is the incoming branch's code
+
+3. **Edit the files** to resolve conflicts by choosing one version or manually merging them
+
+4. **Mark as resolved**:
+   ```bash
+   git add filename
+   ```
+
+5. **Complete the merge**:
+   ```bash
+   git commit
+   ```
+
+#### Tagging Releases
+
+```bash
+# Create a lightweight tag
+git tag v1.0.0
+
+# Create an annotated tag with a message
+git tag -a v1.0.0 -m "Version 1.0.0 release"
+
+# Push tags to remote
+git push origin --tags
+
+# List all tags
+git tag
+
+# Delete a tag
+git tag -d v1.0.0
+git push origin --delete v1.0.0  # Delete from remote
+```
 
 ### Docker Deployment
 
