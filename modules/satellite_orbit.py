@@ -266,16 +266,26 @@ def create_orbit_animation(satellite_name, ground_track=True, duration_hours=4, 
         
         # Update ground track if enabled
         if ground_track:
+            # Calculate ground point position (nadir point)
             ground_x = earth_radius * np.cos(lat[frame] * np.pi / 180) * np.cos(lon[frame] * np.pi / 180)
             ground_y = earth_radius * np.cos(lat[frame] * np.pi / 180) * np.sin(lon[frame] * np.pi / 180)
             ground_z = earth_radius * np.sin(lat[frame] * np.pi / 180)
             
-            ground_point.set_data([ground_x], [ground_y])
-            ground_point.set_3d_properties([ground_z])
+            # Initialize ground_point if not defined in first frame
+            if 'ground_point' not in locals():
+                ground_point.set_data([ground_x], [ground_y])
+                ground_point.set_3d_properties([ground_z])
+            else:
+                ground_point.set_data([ground_x], [ground_y])
+                ground_point.set_3d_properties([ground_z])
             
-            # Update connection line
-            connection_line.set_data([x_vals[frame], ground_x], [y_vals[frame], ground_y])
-            connection_line.set_3d_properties([z_vals[frame], ground_z])
+            # Initialize connection_line if not defined in first frame
+            if 'connection_line' not in locals():
+                connection_line.set_data([x_vals[frame], ground_x], [y_vals[frame], ground_y])
+                connection_line.set_3d_properties([z_vals[frame], ground_z])
+            else:
+                connection_line.set_data([x_vals[frame], ground_x], [y_vals[frame], ground_y])
+                connection_line.set_3d_properties([z_vals[frame], ground_z])
             
             # Update ground track path (last 50 points)
             nonlocal ground_track_points
