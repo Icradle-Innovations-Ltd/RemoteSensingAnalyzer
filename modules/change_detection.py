@@ -4,10 +4,12 @@ Provides functions for detecting and visualizing changes between images
 """
 
 import numpy as np
-from skimage import feature, transform, filters, segmentation, color
+from skimage import feature, transform, filters, segmentation, color, morphology, exposure
 import matplotlib.pyplot as plt
+from scipy.ndimage import binary_dilation, binary_erosion, gaussian_filter
+import cv2
 
-def detect_image_changes(image1, image2, method="diff", threshold=0.1):
+def detect_image_changes(image1, image2, method="diff", threshold=0.1, preprocess="none", noise_reduction=0):
     """
     Detect changes between two images
     
@@ -18,9 +20,13 @@ def detect_image_changes(image1, image2, method="diff", threshold=0.1):
     image2 : ndarray
         Second image (comparison)
     method : str
-        Method for change detection ('diff', 'ratio', 'regression')
+        Method for change detection ('diff', 'ratio', 'regression', 'edge', 'texture', 'hybrid')
     threshold : float
         Threshold for change detection (0-1)
+    preprocess : str
+        Preprocessing method ('none', 'histogram', 'clahe', 'gamma')
+    noise_reduction : int
+        Level of noise reduction (0-3)
     
     Returns:
     -------
@@ -86,6 +92,115 @@ def detect_image_changes(image1, image2, method="diff", threshold=0.1):
     else:
         raise ValueError(f"Unknown method: {method}")
     
+    # Apply preprocessing if requested
+    if preprocess != "none":
+        if preprocess == "histogram":
+            # Histogram equalization
+            img1_norm = exposure.equalize_hist(img1_norm)
+            img2_norm = exposure.equalize_hist(img2_norm)
+            # Recalculate change magnitude
+            if method == "diff":
+                change_magnitude = np.abs(img2_norm - img1_norm)
+            elif method == "ratio":
+                epsilon = 1e-8
+                ratio = (img2_norm + epsilon) / (img1_norm + epsilon)
+                log_ratio = np.log(ratio)
+                change_magnitude = np.abs(log_ratio)
+                change_magnitude = (change_magnitude - np.min(change_magnitude)) / (np.max(change_magnitude) - np.min(change_magnitude) + 1e-8)
+        
+        elif preprocess == "clahe":
+            # Contrast Limited Adaptive Histogram Equalization
+            clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+            img1_norm = clahe.apply((img1_norm * 255).astype(np.uint8)) / 255.0
+            img2_norm = clahe.apply((img2_norm * 255).astype(np.uint8)) / 255.0
+            # Recalculate change magnitude
+            if method == "diff":
+                change_magnitude = np.abs(img2_norm - img1_norm)
+            elif method == "ratio":
+                epsilon = 1e-8
+                ratio = (img2_norm + epsilon) / (img1_norm + epsilon)
+                log_ratio = np.log(ratio)
+                change_magnitude = np.abs(log_ratio)
+                change_magnitude = (change_magnitude - np.min(change_magnitude)) / (np.max(change_magnitude) - np.min(change_magnitude) + 1e-8)
+        
+        elif preprocess == "gamma":
+            # Gamma correction
+            img1_norm = exposure.adjust_gamma(img1_norm, 1.5)
+            img2_norm = exposure.adjust_gamma(img2_norm, 1.5)
+            # Recalculate change magnitude
+            if method == "diff":
+                change_magnitude = np.abs(img2_norm - img1_norm)
+            elif method == "ratio":
+                epsilon = 1e-8
+                ratio = (img2_norm + epsilon) / (img1_norm + epsilon)
+                log_ratio = np.log(ratio)
+                change_magnitude = np.abs(log_ratio)
+                change_magnitude = (change_magnitude - np.min(change_magnitude)) / (np.max(change_magnitude) - np.min(change_magnitude) + 1e-8)
+
+    # Additional detection methods
+    if method == "edge":
+        # Edge-based change detection
+        edges1 = feature.canny(img1_norm, sigma=1.0)
+        edges2 = feature.canny(img2_norm, sigma=1.0)
+        change_magnitude = np.abs(edges2.astype(float) - edges1.astype(float))
+    
+    elif method == "texture":
+        # Texture-based change detection
+        window_size = 15
+        img1_texture = np.zeros_like(img1_norm)
+        img2_texture = np.zeros_like(img2_norm)
+        
+        # Calculate local variance (simple texture measure)
+        from scipy.ndimage import uniform_filter, generic_filter
+        img1_mean = uniform_filter(img1_norm, size=window_size)
+        img2_mean = uniform_filter(img2_norm, size=window_size)
+        img1_sqr_mean = uniform_filter(img1_norm**2, size=window_size)
+        img2_sqr_mean = uniform_filter(img2_norm**2, size=window_size)
+        img1_var = img1_sqr_mean - img1_mean**2
+        img2_var = img2_sqr_mean - img2_mean**2
+        
+        # Compute texture difference
+        texture_diff = np.abs(img2_var - img1_var)
+        change_magnitude = texture_diff / np.max(texture_diff + 1e-8)
+    
+    elif method == "hybrid":
+        # Combine multiple methods for better results
+        # Intensity difference
+        intensity_diff = np.abs(img2_norm - img1_norm)
+        
+        # Edge difference
+        edges1 = feature.canny(img1_norm, sigma=1.0)
+        edges2 = feature.canny(img2_norm, sigma=1.0)
+        edge_diff = np.abs(edges2.astype(float) - edges1.astype(float))
+        
+        # Texture difference (using local standard deviation)
+        window_size = 15
+        from scipy.ndimage import uniform_filter
+        img1_mean = uniform_filter(img1_norm, size=window_size)
+        img2_mean = uniform_filter(img2_norm, size=window_size)
+        img1_sqr_mean = uniform_filter(img1_norm**2, size=window_size)
+        img2_sqr_mean = uniform_filter(img2_norm**2, size=window_size)
+        img1_var = img1_sqr_mean - img1_mean**2
+        img2_var = img2_sqr_mean - img2_mean**2
+        texture_diff = np.abs(img2_var - img1_var)
+        texture_diff = texture_diff / np.max(texture_diff + 1e-8)
+        
+        # Combine the different change metrics (weighted sum)
+        change_magnitude = 0.4 * intensity_diff + 0.3 * edge_diff + 0.3 * texture_diff
+        change_magnitude = change_magnitude / np.max(change_magnitude)
+    
+    # Apply noise reduction if requested
+    if noise_reduction > 0:
+        if noise_reduction == 1:
+            # Light noise reduction
+            change_magnitude = gaussian_filter(change_magnitude, sigma=0.5)
+        elif noise_reduction == 2:
+            # Medium noise reduction
+            change_magnitude = gaussian_filter(change_magnitude, sigma=1.0)
+        elif noise_reduction == 3:
+            # Strong noise reduction
+            change_magnitude = gaussian_filter(change_magnitude, sigma=2.0)
+            
     # Apply threshold to get binary change map
     change_map = change_magnitude > threshold
     
@@ -96,7 +211,7 @@ def detect_image_changes(image1, image2, method="diff", threshold=0.1):
     
     return change_map, change_magnitude
 
-def create_change_rgb(image1, image2, change_map):
+def create_change_rgb(image1, image2, change_map, visualization_type="standard"):
     """
     Create a RGB visualization of changes between two images
     
@@ -108,11 +223,14 @@ def create_change_rgb(image1, image2, change_map):
         Second image (comparison)
     change_map : ndarray
         Binary map indicating changed areas
+    visualization_type : str
+        Type of visualization to create ('standard', 'heatmap', 'checkerboard', 
+        'side-by-side', 'colorized', 'outline')
     
     Returns:
     -------
     rgb_result : ndarray
-        RGB visualization where red indicates changes
+        RGB visualization of changes according to the chosen visualization type
     """
     # Ensure images are grayscale
     if len(image1.shape) > 2:
@@ -126,19 +244,130 @@ def create_change_rgb(image1, image2, change_map):
     img1_norm = (img1_gray - np.min(img1_gray)) / (np.max(img1_gray) - np.min(img1_gray) + 1e-8)
     img2_norm = (img2_gray - np.min(img2_gray)) / (np.max(img2_gray) - np.min(img2_gray) + 1e-8)
     
-    # Create RGB image with grayscale image as background (both channels)
+    # Create RGB image based on visualization type
     h, w = img1_norm.shape
     rgb_result = np.zeros((h, w, 3), dtype=np.float32)
     
-    # Use the second image as background
-    rgb_result[:, :, 0] = img2_norm  # Red
-    rgb_result[:, :, 1] = img2_norm  # Green
-    rgb_result[:, :, 2] = img2_norm  # Blue
+    if visualization_type == "standard":
+        # Standard red highlight on second image
+        rgb_result[:, :, 0] = img2_norm  # Red
+        rgb_result[:, :, 1] = img2_norm  # Green
+        rgb_result[:, :, 2] = img2_norm  # Blue
+        
+        # Highlight changes in red
+        rgb_result[change_map, 0] = 1.0  # Full red
+        rgb_result[change_map, 1] = 0.0  # No green
+        rgb_result[change_map, 2] = 0.0  # No blue
     
-    # Highlight changes in red
-    rgb_result[change_map, 0] = 1.0  # Full red
-    rgb_result[change_map, 1] = 0.0  # No green
-    rgb_result[change_map, 2] = 0.0  # No blue
+    elif visualization_type == "heatmap":
+        # Use a heatmap colormap for change intensity
+        import matplotlib.cm as cm
+        
+        # Create grayscale background
+        rgb_result[:, :, 0] = img2_norm  # Red
+        rgb_result[:, :, 1] = img2_norm  # Green
+        rgb_result[:, :, 2] = img2_norm  # Blue
+        
+        # Get change magnitude (create a simple one if not available)
+        change_magnitude = np.abs(img2_norm - img1_norm)
+        
+        # Apply colormap to changes
+        heatmap = cm.hot(change_magnitude)[:, :, :3]  # Get RGB from hot colormap
+        
+        # Apply heatmap only to changed areas
+        for i in range(3):
+            rgb_result[change_map, i] = heatmap[change_map, i]
+    
+    elif visualization_type == "checkerboard":
+        # Checkerboard pattern with both images
+        checkerboard = np.zeros((h, w), dtype=bool)
+        
+        # Create checkerboard pattern (8x8 squares)
+        square_size = 8
+        for i in range(h):
+            for j in range(w):
+                checkerboard[i, j] = ((i // square_size) + (j // square_size)) % 2 == 0
+        
+        # Fill with image1 in one squares and image2 in others
+        rgb_result[:, :, 0] = np.where(checkerboard, img1_norm, img2_norm)
+        rgb_result[:, :, 1] = np.where(checkerboard, img1_norm, img2_norm)
+        rgb_result[:, :, 2] = np.where(checkerboard, img1_norm, img2_norm)
+        
+        # Highlight changes in red
+        rgb_result[change_map, 0] = 1.0  # Full red
+        rgb_result[change_map, 1] = 0.2  # Low green
+        rgb_result[change_map, 2] = 0.2  # Low blue
+    
+    elif visualization_type == "side-by-side":
+        # Side-by-side split with a divider
+        half_w = w // 2
+        
+        # Left side: image1
+        rgb_result[:, :half_w, 0] = img1_norm[:, :half_w]
+        rgb_result[:, :half_w, 1] = img1_norm[:, :half_w]
+        rgb_result[:, :half_w, 2] = img1_norm[:, :half_w]
+        
+        # Right side: image2
+        rgb_result[:, half_w:, 0] = img2_norm[:, half_w:]
+        rgb_result[:, half_w:, 1] = img2_norm[:, half_w:]
+        rgb_result[:, half_w:, 2] = img2_norm[:, half_w:]
+        
+        # White divider line
+        divider_width = 2
+        center = half_w - divider_width//2
+        rgb_result[:, center:center+divider_width, :] = 1.0
+        
+        # Highlight changes with cyan outlines that span both sides
+        dilated_change = binary_dilation(change_map, iterations=1)
+        edge_change = dilated_change & ~change_map
+        
+        rgb_result[edge_change, 0] = 0.0  # No red
+        rgb_result[edge_change, 1] = 1.0  # Full green
+        rgb_result[edge_change, 2] = 1.0  # Full blue
+    
+    elif visualization_type == "colorized":
+        # Colorize images differently and blend in changed areas
+        
+        # Image 1 in blue tint
+        rgb_result[:, :, 0] = img1_norm * 0.4  # Low red
+        rgb_result[:, :, 1] = img1_norm * 0.4  # Low green
+        rgb_result[:, :, 2] = img1_norm        # Full blue
+        
+        # Image 2 in green tint (only in changed areas)
+        rgb_result[change_map, 0] = img2_norm[change_map] * 0.4  # Low red
+        rgb_result[change_map, 1] = img2_norm[change_map]        # Full green
+        rgb_result[change_map, 2] = img2_norm[change_map] * 0.4  # Low blue
+    
+    elif visualization_type == "outline":
+        # Similar to standard but with highlighted outlines
+        rgb_result[:, :, 0] = img2_norm  # Red
+        rgb_result[:, :, 1] = img2_norm  # Green
+        rgb_result[:, :, 2] = img2_norm  # Blue
+        
+        # Dilate the change map to get the outer edge
+        dilated_change = binary_dilation(change_map, iterations=2)
+        edge_change = dilated_change & ~binary_dilation(change_map, iterations=1)
+        
+        # Fill changes with yellow
+        rgb_result[change_map, 0] = 1.0  # Full red
+        rgb_result[change_map, 1] = 1.0  # Full green
+        rgb_result[change_map, 2] = 0.0  # No blue
+        
+        # Mark edges with bright cyan
+        rgb_result[edge_change, 0] = 0.0  # No red
+        rgb_result[edge_change, 1] = 1.0  # Full green
+        rgb_result[edge_change, 2] = 1.0  # Full blue
+        
+    else:
+        # Default to standard if unknown type
+        rgb_result[:, :, 0] = img2_norm  # Red
+        rgb_result[:, :, 1] = img2_norm  # Green
+        rgb_result[:, :, 2] = img2_norm  # Blue
+        
+        # Highlight changes in red
+        rgb_result[change_map, 0] = 1.0  # Full red
+        rgb_result[change_map, 1] = 0.0  # No green
+        rgb_result[change_map, 2] = 0.0  # No blue
     
     return rgb_result
 
