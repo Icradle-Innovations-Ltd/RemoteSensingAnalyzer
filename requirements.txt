@@ -12,7 +12,13 @@ pandas==2.0.0
 opencv-python-headless==4.11.0.86  # Headless version for server deployment
 scikit-image==0.25.2
 scikit-learn==1.6.1
-scipy==1.15.2
+pillow==11.2.1
+python-dotenv==1.1.0
+requests==2.32.3
+pandas==2.0.0
+
+# Image processing
+opencv-python-headless==4.11.0.86  # Headless version for server deploymentscipy==1.15.2
 
 # AI and NLP
 anthropic==0.50.0
@@ -33,6 +39,20 @@ plotly==5.13.1
 seaborn==0.12.2
 
 # Web and networking
+# Geospatial processing
+earthengine-api==1.5.13
+folium==0.19.5
+sentinelsat==1.2.1
+pyproj==3.2.0  # Using a specific version that's known to work with Render
+
+# For Render deployment, use system GDAL
+# GDAL will be installed by the system package manager
+
+# Data visualization
+plotly==5.13.1
+seaborn==0.12.2
+
+# Web and networking
 aiohttp==3.8.4
 beautifulsoup4==4.12.2
 
@@ -40,6 +60,9 @@ beautifulsoup4==4.12.2
 tqdm==4.65.0
 pyyaml==6.0
 joblib==1.2.0
+
+# For deployment
+gunicorn==21.2.0
 
 # For deployment
 gunicorn==21.2.0

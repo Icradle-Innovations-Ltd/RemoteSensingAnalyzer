@@ -272,9 +272,12 @@ The app will be available at http://0.0.0.0:5000
    - Name: `remote-sensing-analyzer` (or your preferred name)
    - Environment: `Python 3`
    - Build Command: `./build.sh`
+     (This script installs system dependencies including GDAL and Python packages)
    - Start Command: `streamlit run app.py --server.port $PORT --server.address 0.0.0.0`
      (This tells Render to run your Streamlit app using the port assigned by Render)
    - Select the appropriate plan (Free tier works for testing)
+   
+   > **Note**: If you encounter build issues with geospatial dependencies (especially pyproj), try using the alternative build script: `./build_alt.sh`
 
 3. **Set Environment Variables**:
    - Add all the required API keys and credentials as environment variables
@@ -287,11 +290,44 @@ The app will be available at http://0.0.0.0:5000
 5. **Access Your Application**:
    - Once deployment is complete, your app will be available at the URL provided by Render
 
+> **Important Note About the Build Command**:  
+> The build command `./build.sh` executes our custom build script which:
+> - Installs system dependencies including GDAL, which is required for geospatial processing
+> - Sets up the correct environment variables for GDAL compilation
+> - Installs all Python dependencies from requirements.txt
+> - Installs the GDAL Python package matching the system version
+> - The script must be executable (Render will handle this automatically)
+
 > **Important Note About the Start Command**:  
 > The start command `streamlit run app.py --server.port $PORT --server.address 0.0.0.0` is critical for proper deployment:
 > - `$PORT` is a variable that Render automatically sets to the assigned port
 > - `--server.address 0.0.0.0` binds the server to all network interfaces, making it publicly accessible
 > - Do not change this command unless you know what you're doing
+
+### Troubleshooting Deployment Issues
+
+If you encounter issues during deployment, here are some common problems and solutions:
+
+1. **pyproj Compilation Errors**:
+   - Error message: `Cannot assign type 'void (void *, int, const char *) except * nogil' to 'PJ_LOG_FUNCTION'`
+   - Solution: Use the alternative build script by changing the build command to `./build_alt.sh`
+   - This script installs a specific version of pyproj (3.2.0) that's known to work with Render
+
+2. **GDAL Installation Issues**:
+   - If you see errors related to GDAL installation, try modifying the build script to use a specific GDAL version
+   - You can also try using the `--no-build-isolation` flag when installing GDAL
+
+3. **Memory Limit Exceeded**:
+   - If the build process fails due to memory limits, consider upgrading your Render plan
+   - Alternatively, simplify the build process by using pre-built wheels where possible
+
+4. **Long Build Times**:
+   - Geospatial packages can take a long time to build
+   - Be patient during the initial deployment, subsequent deployments may be faster due to caching
+
+5. **Missing Environment Variables**:
+   - If the application fails to start, check that all required environment variables are set in the Render dashboard
+   - Refer to the `.env.example` file for the required variables
 
 ### Docker Deployment
 
