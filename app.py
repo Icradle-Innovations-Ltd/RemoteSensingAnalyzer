@@ -1230,6 +1230,25 @@ if st.session_state.preprocessed_image is not None:
                     st.session_state.ai_analysis_results = analysis_results
                     
                     st.success("Analysis complete!")
+        
+        # Display analysis results if available
+        if st.session_state.ai_analysis_results is not None:
+            st.subheader("AI Analysis Results")
+            
+            # Create tabs for different parts of the analysis
+            analysis_tabs = st.tabs(["Feature Detection", "Interpretation", "Technical Analysis"])
+            
+            with analysis_tabs[0]:
+                st.markdown("### Detected Features")
+                st.markdown(st.session_state.ai_analysis_results.get('features', 'No feature information available.'))
+                
+            with analysis_tabs[1]:
+                st.markdown("### Interpretation & Insights")
+                st.markdown(st.session_state.ai_analysis_results.get('interpretation', 'No interpretation available.'))
+                
+            with analysis_tabs[2]:
+                st.markdown("### Technical Analysis")
+                st.markdown(st.session_state.ai_analysis_results.get('technical', 'No technical analysis available.'))
     
     # Satellite Orbits Tab
     with main_tabs[4]:

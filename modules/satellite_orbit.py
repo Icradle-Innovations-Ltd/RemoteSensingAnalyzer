@@ -498,24 +498,26 @@ def display_satellite_info_table(satellites=None):
         ]
         rows.append(row)
     
-    # Generate HTML table
-    table_html = "<table style='width:100%; border-collapse: collapse;'>\n"
+    # Generate HTML table with white background and black text for better visibility in dark mode
+    table_html = "<div style='background-color: white; padding: 16px; border-radius: 8px;'>\n"
+    table_html += "<table style='width:100%; border-collapse: collapse; color: black;'>\n"
     
     # Add headers
-    table_html += "<tr style='background-color: #f2f2f2;'>\n"
+    table_html += "<tr style='background-color: #e0e0e0;'>\n"
     for header in headers:
-        table_html += f"<th style='padding: 8px; text-align: left; border: 1px solid #ddd;'>{header}</th>\n"
+        table_html += f"<th style='padding: 12px; text-align: left; border: 1px solid #bbb; font-weight: bold;'>{header}</th>\n"
     table_html += "</tr>\n"
     
-    # Add rows
+    # Add rows with alternating background colors for better readability
     for i, row in enumerate(rows):
-        style = "background-color: #f9f9f9;" if i % 2 == 0 else ""
+        style = "background-color: #f5f5f5;" if i % 2 == 0 else "background-color: white;"
         table_html += f"<tr style='{style}'>\n"
         for cell in row:
-            table_html += f"<td style='padding: 8px; text-align: left; border: 1px solid #ddd;'>{cell}</td>\n"
+            table_html += f"<td style='padding: 10px; text-align: left; border: 1px solid #bbb;'>{cell}</td>\n"
         table_html += "</tr>\n"
     
-    table_html += "</table>"
+    table_html += "</table>\n"
+    table_html += "</div>"
     
     return table_html
 
