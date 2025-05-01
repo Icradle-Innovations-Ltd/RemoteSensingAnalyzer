@@ -5,12 +5,15 @@ from PIL import Image
 import io
 import os
 import time
+import base64
+import json
+from datetime import datetime
 
 # Import custom modules
 import image_processor
 import filters
 import utils
-from modules import ndvi, classification, map_overlay
+from modules import ndvi, classification, map_overlay, ai_analysis, documentation
 
 # Set page configuration
 st.set_page_config(
@@ -218,89 +221,202 @@ with st.sidebar:
 
 # Main content area
 if st.session_state.preprocessed_image is not None:
-    # Create three columns for side-by-side comparison
-    col1, col2, col3 = st.columns(3)
+    # Create tabs for visualization and analysis
+    main_tabs = st.tabs(["Visualization", "AI Analysis", "Report Generation"])
     
-    with col1:
-        st.subheader("Original Image")
-        fig, ax = plt.subplots(figsize=(5, 5))
-        ax.imshow(st.session_state.preprocessed_image, cmap='gray')
-        ax.axis('off')
-        st.pyplot(fig)
+    # Visualization Tab
+    with main_tabs[0]:
+        # Create three columns for side-by-side comparison
+        col1, col2, col3 = st.columns(3)
         
-        if st.session_state.is_geotiff and st.session_state.selected_band > 0:
-            st.caption(f"Band {st.session_state.selected_band}")
-    
-    with col2:
-        st.subheader("FFT Spectrum")
-        if st.session_state.fft_magnitude is not None:
+        with col1:
+            st.subheader("Original Image")
             fig, ax = plt.subplots(figsize=(5, 5))
-            im = ax.imshow(st.session_state.fft_magnitude, cmap='viridis')
-            ax.axis('off')
-            fig.colorbar(im, ax=ax, shrink=0.8)
-            st.pyplot(fig)
-            
-            # Add explanation
-            st.caption("Brighter areas indicate stronger frequency components")
-    
-    with col3:
-        st.subheader("Filtered Result")
-        if st.session_state.filtered_image is not None:
-            fig, ax = plt.subplots(figsize=(5, 5))
-            ax.imshow(st.session_state.filtered_image, cmap='gray')
+            ax.imshow(st.session_state.preprocessed_image, cmap='gray')
             ax.axis('off')
             st.pyplot(fig)
             
-            # Add filter info
-            if 'type' in st.session_state.last_filter_params:
-                filter_info = f"Filter: {st.session_state.last_filter_params['type']}"
-                st.caption(filter_info)
+            if st.session_state.is_geotiff and st.session_state.selected_band is not None and st.session_state.selected_band > 0:
+                st.caption(f"Band {st.session_state.selected_band}")
+        
+        with col2:
+            st.subheader("FFT Spectrum")
+            if st.session_state.fft_magnitude is not None:
+                fig, ax = plt.subplots(figsize=(5, 5))
+                im = ax.imshow(st.session_state.fft_magnitude, cmap='viridis')
+                ax.axis('off')
+                fig.colorbar(im, ax=ax, shrink=0.8)
+                st.pyplot(fig)
+                
+                # Add explanation
+                st.caption("Brighter areas indicate stronger frequency components")
+        
+        with col3:
+            st.subheader("Filtered Result")
+            if st.session_state.filtered_image is not None:
+                fig, ax = plt.subplots(figsize=(5, 5))
+                ax.imshow(st.session_state.filtered_image, cmap='gray')
+                ax.axis('off')
+                st.pyplot(fig)
+                
+                # Add filter info
+                if 'type' in st.session_state.last_filter_params:
+                    filter_info = f"Filter: {st.session_state.last_filter_params['type']}"
+                    st.caption(filter_info)
+                
+                # Download button
+                if st.button("Download Filtered Image", key="download_img_btn"):
+                    # Convert filtered image to bytes
+                    filtered_pil = Image.fromarray(
+                        (st.session_state.filtered_image * 255).astype(np.uint8)
+                    )
+                    buf = io.BytesIO()
+                    filtered_pil.save(buf, format='PNG')
+                    btn = st.download_button(
+                        label="Download PNG",
+                        data=buf.getvalue(),
+                        file_name="filtered_image.png",
+                        mime="image/png"
+                    )
+    
+    # AI Analysis Tab
+    with main_tabs[1]:
+        st.subheader("AI-Powered Image Analysis")
+        st.markdown("""
+        Our AI analysis uses advanced computer vision models to interpret both your original and filtered images.
+        This can help identify features, patterns, and potential applications of your processed imagery.
+        """)
+        
+        # Initialize session state for AI analysis
+        if 'ai_analysis_results' not in st.session_state:
+            st.session_state.ai_analysis_results = None
             
-            # Download button
-            if st.button("Download Filtered Image"):
-                # Convert filtered image to bytes
-                filtered_pil = Image.fromarray(
-                    (st.session_state.filtered_image * 255).astype(np.uint8)
+        # AI Analysis button
+        if st.button("Analyze with AI", key="analyze_ai_btn"):
+            with st.spinner("Analyzing imagery with AI..."):
+                if st.session_state.preprocessed_image is not None and st.session_state.filtered_image is not None:
+                    # Get filter type
+                    filter_type = st.session_state.last_filter_params.get('type', 'Unknown')
+                    
+                    # Run AI analysis
+                    analysis_results = ai_analysis.analyze_satellite_image(
+                        st.session_state.preprocessed_image,
+                        st.session_state.filtered_image,
+                        filter_type
+                    )
+                    
+                    # Store results
+                    st.session_state.ai_analysis_results = analysis_results
+                    
+                    st.success("Analysis complete!")
+        
+        # Display AI analysis results if available
+        if st.session_state.ai_analysis_results:
+            results = st.session_state.ai_analysis_results
+            
+            if 'error' in results:
+                st.error(f"Analysis error: {results['error']}")
+            else:
+                # Features detected
+                st.subheader("Features Detected")
+                for feature in results.get('features_detected', []):
+                    st.markdown(f"- {feature}")
+                
+                # Effects of filtering
+                st.subheader("Filter Effects")
+                for effect in results.get('filter_effects', []):
+                    st.markdown(f"- {effect}")
+                
+                # Environmental patterns
+                st.subheader("Environmental Patterns")
+                for pattern in results.get('environmental_patterns', []):
+                    st.markdown(f"- {pattern}")
+                
+                # Applications
+                st.subheader("Potential Applications")
+                for app in results.get('applications', []):
+                    st.markdown(f"- {app}")
+                
+                # Recommendations
+                st.subheader("Recommendations")
+                for rec in results.get('recommendations', []):
+                    st.markdown(f"- {rec}")
+                
+                # Summary
+                st.subheader("Summary")
+                st.write(results.get('summary', 'No summary available.'))
+        else:
+            st.info("Click 'Analyze with AI' to get insights about your imagery.")
+    
+    # Report Generation Tab
+    with main_tabs[2]:
+        st.subheader("Report Generation")
+        st.markdown("""
+        Generate a comprehensive report that combines image information, processing parameters,
+        and AI analysis results. This report can be used for documentation, sharing insights,
+        or supporting decision-making processes.
+        """)
+        
+        # Initialize session state for report
+        if 'report_content' not in st.session_state:
+            st.session_state.report_content = None
+            
+        # Generate report button
+        if st.button("Generate Report", key="gen_report_btn"):
+            if st.session_state.img_info and st.session_state.last_filter_params:
+                # Generate report
+                report = ai_analysis.generate_full_report(
+                    st.session_state.img_info,
+                    st.session_state.last_filter_params,
+                    st.session_state.ai_analysis_results
                 )
-                buf = io.BytesIO()
-                filtered_pil.save(buf, format='PNG')
-                btn = st.download_button(
-                    label="Download PNG",
-                    data=buf.getvalue(),
-                    file_name="filtered_image.png",
-                    mime="image/png"
+                
+                # Store report
+                st.session_state.report_content = report
+                
+                st.success("Report generated successfully!")
+        
+        # Display and download report if available
+        if st.session_state.report_content:
+            st.markdown(st.session_state.report_content)
+            
+            # Download report button
+            if st.button("Download Report", key="download_report_btn"):
+                # Prepare report for download
+                report_bytes = st.session_state.report_content.encode()
+                
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                filename = f"satellite_analysis_report_{timestamp}.md"
+                
+                st.download_button(
+                    label="Download Markdown Report",
+                    data=report_bytes,
+                    file_name=filename,
+                    mime="text/markdown"
                 )
+        else:
+            st.info("Click 'Generate Report' to create a comprehensive analysis report.")
 else:
-    # Display instructions when no image is uploaded
+    # Display documentation and app information when no image is uploaded
     st.info("👈 Please upload an image using the sidebar to begin analysis.")
     
-    # Add explanations about the app
-    st.markdown("""
-    ## About this tool
+    # Create tabs for different documentation sections
+    doc_tabs = st.tabs(["About", "Tutorial", "Frequency Domain Guide", "Examples", "Interpretation Guide"])
     
-    This Remote Sensing Data Analyzer allows you to:
+    with doc_tabs[0]:
+        st.markdown(documentation.get_documentation_section("about"))
     
-    1. **Upload** satellite imagery in various formats (JPG, PNG, GeoTIFF)
-    2. **Visualize** the frequency-domain representation using Fourier Transforms
-    3. **Apply** customizable filters to highlight or suppress spatial features
-    4. **Compare** original and processed images side-by-side
-    5. **Download** filtered images for further analysis
+    with doc_tabs[1]:
+        st.markdown(documentation.get_documentation_section("tutorial"))
     
-    ### How Frequency-Domain Filtering Works
+    with doc_tabs[2]:
+        st.markdown(documentation.get_documentation_section("frequency_domain"))
     
-    Frequency-domain analysis transforms an image from its spatial representation (pixel values) 
-    into its frequency components using the Fast Fourier Transform (FFT). This allows for:
-    
-    - **Low-pass filtering**: Preserves smooth areas by keeping low frequencies (reduces noise)
-    - **High-pass filtering**: Emphasizes edges and fine details by keeping high frequencies
-    - **Band-stop filtering**: Removes specific frequency bands (useful for removing periodic noise)
-    
-    ### Tips for Effective Analysis
-    
-    - Start with a clear, high-contrast image for best results
-    - Try different filter types to see which best highlights your features of interest
-    - For GeoTIFF files, experiment with different spectral bands
-    """)
+    with doc_tabs[3]:
+        st.markdown(documentation.get_documentation_section("examples"))
+        
+    with doc_tabs[4]:
+        st.markdown(documentation.get_documentation_section("interpretation"))
 
 # Footer
 st.markdown("---")
