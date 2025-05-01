@@ -1,0 +1,18 @@
+services:
+  # A web service for the Streamlit application
+  - type: web
+    name: remote-sensing-analyzer
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: streamlit run app.py --server.port $PORT --server.address 0.0.0.0
+    plan: free
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: STREAMLIT_SERVER_HEADLESS
+        value: true
+      - key: STREAMLIT_SERVER_ENABLE_CORS
+        value: false
+      - key: STREAMLIT_BROWSER_GATHER_USAGE_STATS
+        value: false

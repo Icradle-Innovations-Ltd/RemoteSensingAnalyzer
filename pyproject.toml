@@ -1,8 +1,8 @@
 [project]
-name = "repl-nix-workspace"
+name = "remote-sensing-analyzer"
 version = "0.1.0"
-description = "Add your description here"
-requires-python = ">=3.11"
+description = "Remote Sensing Data Analyzer"
+requires-python = ">=3.9,<3.10"
 dependencies = [
     "anthropic>=0.50.0",
     "earthengine-api>=1.5.13",
@@ -21,4 +21,19 @@ dependencies = [
     "sentinelsat>=1.2.1",
     "streamlit>=1.45.0",
     "trafilatura>=2.0.0",
+    "Cython>=3.0.0",
+    "pyproj>=3.4.1",
 ]
+
+[tool.poetry]
+name = "remote-sensing-analyzer"
+version = "0.1.0"
+description = "Remote Sensing Data Analyzer"
+authors = ["Icradle Innovations Ltd <info@icradle.com>"]
+
+[tool.poetry.dependencies]
+python = "3.9.*"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
