@@ -360,8 +360,28 @@ The application supports multiple AI providers to give you flexibility and robus
 
 1. Both your original and filtered images are sent to the selected AI provider
 2. The AI analyzes visual features, patterns, and transformations
-3. Results are structured into categories: features detected, filter effects, environmental patterns, applications, and recommendations
-4. A comprehensive summary ties everything together
+3. Results are structured into categories: features detected, interpretation, and technical analysis
+4. Results are displayed in tabs for easy navigation
+5. A comprehensive report can be generated that combines all analysis
+
+## Using the AI Analysis Interface
+
+After clicking the "Analyze with AI" button, you'll see three main tabs:
+
+### Feature Detection Tab
+- Shows the physical elements identified in the imagery
+- Lists the key features detected by the AI
+- Provides a detailed breakdown of what the AI sees in the image
+
+### Interpretation Tab
+- Offers insights and interpretations about the observed features
+- Explains relationships between different elements
+- Provides context for what the patterns might mean
+
+### Technical Analysis Tab
+- Focuses on the technical aspects of the image processing
+- Explains how the filter has affected the image
+- Provides more detailed analysis for technical users
 
 ## Interpretation Tips
 
@@ -580,6 +600,13 @@ Common issues include:
 - Missing bands or metadata
 - Corrupt files
 Try preprocessing your GeoTIFF with GDAL or similar tools before uploading.
+
+### Why do some tables appear difficult to read in dark mode?
+Tables in the application have been optimized for visibility in dark mode by using:
+- White backgrounds for tables
+- Black text for table content
+- Clear borders for cell separation
+These design choices ensure that table content remains highly visible regardless of your theme preferences.
 
 ### How can I improve performance with large images?
 - Use the preprocessing options to reduce resolution if needed
