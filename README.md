@@ -385,12 +385,16 @@ This repository includes a `render.yaml` file that defines the infrastructure ne
 If you encounter issues during deployment, here are some common problems and solutions:
 
 1. **pyproj Compilation Errors**:
-   - Error message: `Cannot assign type 'void (void *, int, const char *) except * nogil' to 'PJ_LOG_FUNCTION'`
+   - Error messages: 
+     - `Cannot assign type 'void (void *, int, const char *) except * nogil' to 'PJ_LOG_FUNCTION'`
+     - `ERROR: Cython.Build.cythonize not found. Cython is required to build pyproj.`
    - **Recommended Solution**: Use Python 3.9 which is specified in the pyproject.toml file
      - The project is configured to use Python 3.9 by default on Render
      - You can also use the build command `./build_py39.sh` for additional setup
+     - The build scripts now install Cython before attempting to install pyproj
    - Alternative Solution 1: Use the alternative build script by changing the build command to `./build_alt.sh`
      - This script tries multiple approaches to install pyproj, including pre-built wheels
+     - It tries newer versions (3.7.1, 3.6.1, 3.5.0, 3.4.1) which have better compatibility
    - Alternative Solution 2: If all else fails, use the minimal build script: `./build_minimal.sh`
      - This script uses system packages and creates minimal wrappers for problematic packages
 

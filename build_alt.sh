@@ -45,6 +45,10 @@ export C_INCLUDE_PATH=/usr/include/gdal:/usr/include/proj
 pip install --upgrade pip
 pip install wheel setuptools
 
+# Install Cython first (required for building pyproj)
+echo "Installing Cython..."
+pip install Cython
+
 echo "Installing non-geospatial packages first..."
 
 # Install packages from PyPI that don't require compilation
@@ -58,20 +62,35 @@ pip install opencv-python-headless==4.11.0.86 scikit-image==0.25.2 scikit-learn=
 echo "Installing GDAL from wheels..."
 
 # Install GDAL with the same version as the system
-GDAL_VERSION=$(gdal-config --version)
-pip install --no-binary :all: --no-build-isolation GDAL==${GDAL_VERSION}
+if command -v gdal-config >/dev/null 2>&1; then
+  GDAL_VERSION=$(gdal-config --version)
+  pip install --no-binary :all: --no-build-isolation GDAL==${GDAL_VERSION} || echo "Warning: GDAL installation failed, continuing anyway"
+  
+  # Install rasterio after GDAL
+  echo "Installing rasterio..."
+  pip install rasterio --no-build-isolation || pip install --only-binary :all: rasterio || echo "Warning: rasterio installation failed, continuing anyway"
+else
+  echo "Skipping GDAL installation as gdal-config is not available"
+  
+  # Try to install rasterio from binary
+  echo "Trying to install rasterio from binary..."
+  pip install --only-binary :all: rasterio || echo "Warning: rasterio installation failed, continuing anyway"
+fi
 
 echo "Installing pyproj from pre-built wheel..."
 
 # Try multiple approaches for pyproj
-# First try: Latest version with no build isolation and no cache
-echo "Attempt 1: Installing pyproj with no build isolation and no cache..."
-pip install pyproj --no-build-isolation --no-cache-dir || true
+# First try: Latest versions with binary wheels
+echo "Attempt 1: Installing latest pyproj versions from binary wheels..."
+pip install pyproj==3.7.1 --only-binary :all: || \
+pip install pyproj==3.6.1 --only-binary :all: || \
+pip install pyproj==3.5.0 --only-binary :all: || \
+pip install pyproj==3.4.1 --only-binary :all: || true
 
-# Second try: Specific newer version (3.5.0)
+# Second try: Latest version with no build isolation and no cache
 if ! pip list | grep -q pyproj; then
-    echo "Attempt 2: Installing pyproj 3.5.0..."
-    pip install pyproj==3.5.0 --no-build-isolation --no-cache-dir || true
+    echo "Attempt 2: Installing pyproj with no build isolation and no cache..."
+    pip install pyproj --no-build-isolation --no-cache-dir || true
 fi
 
 # Third try: Use a pre-built wheel for pyproj 3.0.1 (older but more compatible)
@@ -111,5 +130,9 @@ pip install --only-binary :all: earthengine-api==1.5.13 || pip install earthengi
 # Install any remaining packages from requirements.txt, skipping already installed ones
 echo "Installing any remaining packages from requirements.txt..."
 pip install -r requirements.txt --no-deps || true
+
+# Run the fallback setup script
+echo "Setting up fallbacks if needed..."
+python setup_fallbacks.py
 
 echo "Alternative build completed successfully!"

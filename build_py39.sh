@@ -89,6 +89,10 @@ echo "Upgrading pip and installing wheel..."
 pip install --upgrade pip
 pip install wheel setuptools
 
+# Install Cython first (required for building pyproj)
+echo "Installing Cython..."
+pip install Cython
+
 echo "Installing non-geospatial packages first..."
 
 # Install packages from PyPI that don't require compilation
@@ -104,14 +108,28 @@ if command -v gdal-config >/dev/null 2>&1; then
   echo "Installing GDAL Python bindings..."
   GDAL_VERSION=$(gdal-config --version)
   pip install GDAL==${GDAL_VERSION} --no-build-isolation || echo "Warning: GDAL installation failed, continuing anyway"
+  
+  # Install rasterio after GDAL
+  echo "Installing rasterio..."
+  pip install rasterio --no-build-isolation || pip install --only-binary :all: rasterio || echo "Warning: rasterio installation failed, continuing anyway"
 else
   echo "Skipping GDAL installation as gdal-config is not available"
+  
+  # Try to install rasterio from binary
+  echo "Trying to install rasterio from binary..."
+  pip install --only-binary :all: rasterio || echo "Warning: rasterio installation failed, continuing anyway"
 fi
 
 echo "Installing pyproj..."
 
-# Install pyproj with Python 3.9 (should work better)
-pip install pyproj==3.0.1 --no-build-isolation --no-cache-dir || pip install --only-binary :all: pyproj==3.0.1 || echo "Warning: pyproj installation failed, continuing anyway"
+# Try to install pyproj with Python 3.9 (try newer versions first)
+pip install pyproj==3.7.1 --only-binary :all: || \
+pip install pyproj==3.6.1 --only-binary :all: || \
+pip install pyproj==3.5.0 --only-binary :all: || \
+pip install pyproj==3.4.1 --only-binary :all: || \
+pip install pyproj==3.2.0 --no-build-isolation --no-cache-dir || \
+pip install pyproj==3.0.1 --no-build-isolation --no-cache-dir || \
+echo "Warning: pyproj installation failed, continuing anyway"
 
 echo "Installing other geospatial packages..."
 
@@ -121,5 +139,9 @@ pip install folium==0.19.5 sentinelsat==1.2.1 earthengine-api==1.5.13 || echo "W
 # Install any remaining packages from requirements.txt, skipping already installed ones
 echo "Installing any remaining packages from requirements.txt..."
 pip install -r requirements.txt --no-deps || echo "Warning: Some packages from requirements.txt failed to install"
+
+# Run the fallback setup script
+echo "Setting up fallbacks if needed..."
+python setup_fallbacks.py
 
 echo "Python 3.9 build completed successfully!"

@@ -54,6 +54,10 @@ fi
 pip install --upgrade pip
 pip install wheel setuptools
 
+# Install Cython first (required for building pyproj)
+echo "Installing Cython..."
+pip install Cython
+
 # Install Streamlit and API packages (these don't have system packages)
 echo "Installing Streamlit and API packages..."
 pip install streamlit==1.45.0
@@ -77,12 +81,12 @@ EOF
 echo "Installing minimal requirements..."
 pip install -r minimal_requirements.txt || true
 
-# Create a simple wrapper for GDAL that uses the system installation
+# Create a simple wrapper for pyproj
 echo "Creating pyproj wrapper..."
 PYTHON_VERSION=$(python -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
-SITE_PACKAGES_DIR=".venv/lib/python${PYTHON_VERSION}/site-packages/pyproj"
-mkdir -p "$SITE_PACKAGES_DIR" || true
-cat > "$SITE_PACKAGES_DIR/__init__.py" << EOF
+PYPROJ_DIR=".venv/lib/python${PYTHON_VERSION}/site-packages/pyproj"
+mkdir -p "$PYPROJ_DIR" || true
+cat > "$PYPROJ_DIR/__init__.py" << EOF
 # Wrapper for system pyproj
 import sys
 import os
@@ -121,6 +125,58 @@ EOF
 
 echo "Created minimal pyproj wrapper"
 
+# Create a simple wrapper for rasterio
+echo "Creating rasterio wrapper..."
+RASTERIO_DIR=".venv/lib/python${PYTHON_VERSION}/site-packages/rasterio"
+mkdir -p "$RASTERIO_DIR" || true
+cat > "$RASTERIO_DIR/__init__.py" << EOF
+# Minimal rasterio wrapper
+import sys
+import os
+import numpy as np
+from osgeo import gdal
+
+# Define minimal open function
+def open(path, mode='r'):
+    return DatasetReader(path)
+
+class DatasetReader:
+    def __init__(self, path):
+        self.path = path
+        self._ds = gdal.Open(path)
+        if self._ds is None:
+            raise IOError(f"Could not open {path}")
+        self.shape = (self._ds.RasterYSize, self._ds.RasterXSize)
+        self.count = self._ds.RasterCount
+        
+    def read(self, band_index=1):
+        if band_index > self.count:
+            raise IndexError(f"Band index {band_index} out of range")
+        band = self._ds.GetRasterBand(band_index)
+        return band.ReadAsArray()
+        
+    def close(self):
+        self._ds = None
+        
+    def __enter__(self):
+        return self
+        
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+# Define CRS class
+class CRS:
+    def __init__(self, init=None):
+        self.init = init
+        
+    def to_epsg(self):
+        if isinstance(self.init, int) or (isinstance(self.init, str) and self.init.isdigit()):
+            return int(self.init)
+        return None
+EOF
+
+echo "Created minimal rasterio wrapper"
+
 # Create app directory if it doesn't exist
 mkdir -p app || true
 
@@ -158,11 +214,21 @@ try:
 except ImportError as e:
     print(f"❌ Failed to import folium: {e}")
 
+try:
+    import rasterio
+    print("✅ Rasterio imported successfully (or wrapper)")
+except ImportError as e:
+    print(f"❌ Failed to import rasterio: {e}")
+
 print("Import test complete")
 EOF
 
 # Run the test file
 echo "Testing imports..."
 python test_imports.py
+
+# Run the fallback setup script
+echo "Setting up fallbacks if needed..."
+python setup_fallbacks.py
 
 echo "Minimal build completed successfully!"

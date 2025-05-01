@@ -62,22 +62,45 @@ echo "Upgrading pip and installing wheel..."
 pip install --upgrade pip
 pip install wheel setuptools
 
+# Install Cython first (required for building pyproj)
+echo "Installing Cython..."
+pip install Cython
+
 # Try to install pyproj with no build isolation
 echo "Installing pyproj..."
-pip install pyproj==3.2.0 --no-build-isolation --no-cache-dir || pip install pyproj==3.0.1 --no-build-isolation --no-cache-dir || pip install --only-binary :all: pyproj==3.0.1 || echo "Warning: pyproj installation failed, continuing anyway"
+# Try newer versions first (which might have wheels available)
+pip install pyproj==3.7.1 --only-binary :all: || \
+pip install pyproj==3.6.1 --only-binary :all: || \
+pip install pyproj==3.5.0 --only-binary :all: || \
+pip install pyproj==3.4.1 --only-binary :all: || \
+pip install pyproj==3.2.0 --no-build-isolation --no-cache-dir || \
+pip install pyproj==3.0.1 --no-build-isolation --no-cache-dir || \
+echo "Warning: pyproj installation failed, continuing anyway"
 
 # Try to install GDAL if gdal-config is available
 if command -v gdal-config >/dev/null 2>&1; then
   echo "Installing GDAL Python bindings..."
   GDAL_VERSION=$(gdal-config --version)
   pip install GDAL==${GDAL_VERSION} --no-build-isolation || echo "Warning: GDAL installation failed, continuing anyway"
+  
+  # Install rasterio after GDAL
+  echo "Installing rasterio..."
+  pip install rasterio --no-build-isolation || pip install --only-binary :all: rasterio || echo "Warning: rasterio installation failed, continuing anyway"
 else
   echo "Skipping GDAL installation as gdal-config is not available"
+  
+  # Try to install rasterio from binary
+  echo "Trying to install rasterio from binary..."
+  pip install --only-binary :all: rasterio || echo "Warning: rasterio installation failed, continuing anyway"
 fi
 
 # Install the rest of the requirements, excluding pyproj which we already tried to install
 echo "Installing remaining requirements..."
 grep -v "pyproj" requirements.txt > requirements_filtered.txt
 pip install -r requirements_filtered.txt || echo "Warning: Some packages failed to install"
+
+# Run the fallback setup script
+echo "Setting up fallbacks if needed..."
+python setup_fallbacks.py
 
 echo "Build completed successfully!"
