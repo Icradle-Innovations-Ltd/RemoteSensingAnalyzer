@@ -1313,25 +1313,31 @@ else:
     st.info("👈 Please upload an image using the sidebar to begin analysis.")
     
     # Create tabs for different documentation sections
-    doc_tabs = st.tabs(["About", "Tutorial", "Frequency Domain Guide", "Examples", "Interpretation Guide", "Settings"])
+    doc_tabs = st.tabs(["Overview", "Spectral Analysis", "Land Cover", "Change Detection", "Time Series", "AI Analysis", "FAQ", "Settings"])
     
     with doc_tabs[0]:
-        st.markdown(documentation.get_documentation_section("about"))
+        st.markdown(documentation.get_documentation_section("overview"))
     
     with doc_tabs[1]:
-        st.markdown(documentation.get_documentation_section("tutorial"))
+        st.markdown(documentation.get_documentation_section("spectral_analysis"))
     
     with doc_tabs[2]:
-        st.markdown(documentation.get_documentation_section("frequency_domain"))
+        st.markdown(documentation.get_documentation_section("land_cover"))
     
     with doc_tabs[3]:
-        st.markdown(documentation.get_documentation_section("examples"))
-        
+        st.markdown(documentation.get_documentation_section("change_detection"))
+    
     with doc_tabs[4]:
-        st.markdown(documentation.get_documentation_section("interpretation"))
+        st.markdown(documentation.get_documentation_section("time_series"))
+        
+    with doc_tabs[5]:
+        st.markdown(documentation.get_documentation_section("ai_analysis"))
+        
+    with doc_tabs[6]:
+        st.markdown(documentation.get_documentation_section("faq"))
         
     # Settings Tab (when no image is loaded)
-    with doc_tabs[5]:
+    with doc_tabs[7]:
         st.subheader("Application Settings")
         st.markdown("""
         Configure your API keys and satellite data sources here. 
