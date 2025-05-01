@@ -1493,6 +1493,38 @@ else:
             except Exception as e:
                 st.error(f"Error saving satellite credentials: {str(e)}")
 
-# Footer
+# Footer with social media links
 st.markdown("---")
-st.markdown("Remote Sensing Data Analyzer with Frequency-Domain Filtering | A tool for environmental scientists and GIS analysts")
+footer_col1, footer_col2, footer_col3 = st.columns([2, 1, 1])
+
+with footer_col1:
+    st.markdown("Remote Sensing Data Analyzer with Frequency-Domain Filtering | A tool for environmental scientists and GIS analysts")
+
+with footer_col2:
+    # Add home button
+    if st.button("🏠 Home"):
+        st.session_state.uploaded_file = None
+        st.session_state.image_data = None
+        st.experimental_rerun()
+
+with footer_col3:
+    # Social media links
+    social_links = """
+    <div style="display: flex; justify-content: space-around;">
+        <a href="{github_url}" target="_blank"><img src="https://img.icons8.com/ios-glyphs/30/000000/github.png" width="25" height="25"></a>
+        <a href="{website_url}" target="_blank"><img src="https://img.icons8.com/ios-glyphs/30/000000/domain.png" width="25" height="25"></a>
+        <a href="{linkedin_url}" target="_blank"><img src="https://img.icons8.com/ios-glyphs/30/000000/linkedin.png" width="25" height="25"></a>
+        <a href="{youtube_url}" target="_blank"><img src="https://img.icons8.com/ios-glyphs/30/000000/youtube-play.png" width="25" height="25"></a>
+        <a href="{twitter_url}" target="_blank"><img src="https://img.icons8.com/ios-glyphs/30/000000/twitter.png" width="25" height="25"></a>
+        <a href="{facebook_url}" target="_blank"><img src="https://img.icons8.com/ios-glyphs/30/000000/facebook-new.png" width="25" height="25"></a>
+    </div>
+    """.format(
+        github_url=os.environ.get("GITHUB_URL", "#"),
+        website_url=os.environ.get("WEBSITE_URL", "#"),
+        linkedin_url=os.environ.get("LINKEDIN_URL", "#"),
+        youtube_url=os.environ.get("YOUTUBE_URL", "#"),
+        twitter_url=os.environ.get("TWITTER_URL", "#"),
+        facebook_url=os.environ.get("FACEBOOK_URL", "#")
+    )
+    
+    st.markdown(social_links, unsafe_allow_html=True)

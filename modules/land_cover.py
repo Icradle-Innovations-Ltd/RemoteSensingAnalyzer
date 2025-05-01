@@ -122,20 +122,53 @@ def detect_urban_areas(image, window_size=15, threshold=0.15):
     urban_mask : ndarray
         Binary mask where urban areas are marked as True
     """
-    # Calculate Gabor features for edge detection in urban areas
-    gabor_real, gabor_imag = feature.gabor(image, frequency=0.6, theta=0, sigma_x=1, sigma_y=1)
-    gabor_mag = np.sqrt(gabor_real**2 + gabor_imag**2)
+    # Ensure input is grayscale
+    if len(image.shape) > 2:
+        gray_img = np.mean(image, axis=2)
+    else:
+        gray_img = image
     
-    # Calculate local standard deviation (texture measure)
+    # Normalize to 0-1
+    gray_img = (gray_img - np.min(gray_img)) / (np.max(gray_img) - np.min(gray_img) + 1e-8)
+    
+    # Alternative texture detection using gradient-based approach
+    from skimage import filters
+    
+    # Use gradient magnitude as a texture measure
+    texture_response = np.zeros_like(gray_img)
+    
+    # Calculate gradients using Sobel operator
+    grad_x = filters.sobel_h(gray_img)
+    grad_y = filters.sobel_v(gray_img)
+    grad_mag = np.sqrt(grad_x**2 + grad_y**2)
+    
+    # Apply different scales of gradient-based texture detection
+    for sigma in [0.5, 1.0, 2.0]:
+        # Calculate gradients at different scales
+        grad_x_scaled = filters.gaussian(grad_x, sigma=sigma)
+        grad_y_scaled = filters.gaussian(grad_y, sigma=sigma)
+        grad_mag_scaled = np.sqrt(grad_x_scaled**2 + grad_y_scaled**2)
+        
+        # Add to texture response
+        texture_response += grad_mag_scaled
+    
+    # Normalize texture response
+    texture_response = (texture_response - np.min(texture_response)) / (np.max(texture_response) - np.min(texture_response) + 1e-8)
+    
+    # Calculate local standard deviation (another texture measure)
     from scipy.ndimage import uniform_filter, generic_filter
     
     def local_std_dev(values):
         return np.std(values)
     
-    texture = generic_filter(image, local_std_dev, size=window_size)
+    texture = generic_filter(gray_img, local_std_dev, size=window_size)
+    texture = (texture - np.min(texture)) / (np.max(texture) - np.min(texture) + 1e-8)
     
-    # High texture and high edge response indicate urban areas
-    urban_mask = (texture > threshold) & (gabor_mag > threshold)
+    # Combine texture measures (weighted average)
+    urban_score = 0.6 * texture_response + 0.4 * texture
+    
+    # Apply threshold to get urban mask
+    urban_mask = urban_score > threshold
     
     # Clean up the mask
     from scipy import ndimage
