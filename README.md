@@ -273,6 +273,52 @@ The app will be available at http://0.0.0.0:5000
    - Environment: `Python 3`
    - Build Command: `./build.sh`
    - Start Command: `streamlit run app.py --server.port $PORT --server.address 0.0.0.0`
+     (This tells Render to run your Streamlit app using the port assigned by Render)
+   - Select the appropriate plan (Free tier works for testing)
+
+3. **Set Environment Variables**:
+   - Add all the required API keys and credentials as environment variables
+   - Reference the `.env.example` file for the required variables
+
+4. **Deploy**:
+   - Click "Create Web Service"
+   - Render will automatically build and deploy your application
+
+5. **Access Your Application**:
+   - Once deployment is complete, your app will be available at the URL provided by Render
+
+> **Important Note About the Start Command**:  
+> The start command `streamlit run app.py --server.port $PORT --server.address 0.0.0.0` is critical for proper deployment:
+> - `$PORT` is a variable that Render automatically sets to the assigned port
+> - `--server.address 0.0.0.0` binds the server to all network interfaces, making it publicly accessible
+> - Do not change this command unless you know what you're doing
+
+### Docker Deployment
+
+1. **Build the Docker image**:
+```bash
+docker build -t remote-sensing-analyzer .
+```
+
+2. **Run the container**:
+```bash
+docker run -p 8501:8501 --env-file .env remote-sensing-analyzer
+```
+
+3. **Access the application**:
+   - Open your browser and navigate to http://localhost:8501
+
+### Deployment on Render
+
+1. **Create a new Web Service on Render**:
+   - Connect your GitHub repository
+   - Select the repository containing the Remote Sensing Data Analyzer
+
+2. **Configure the Web Service**:
+   - Name: `remote-sensing-analyzer` (or your preferred name)
+   - Environment: `Python 3`
+   - Build Command: `./build.sh`
+   - Start Command: `streamlit run app.py --server.port $PORT --server.address 0.0.0.0`
    - Select the appropriate plan (Free tier works for testing)
 
 3. **Set Environment Variables**:
