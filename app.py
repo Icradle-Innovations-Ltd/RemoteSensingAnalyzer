@@ -1240,15 +1240,55 @@ if st.session_state.preprocessed_image is not None:
             
             with analysis_tabs[0]:
                 st.markdown("### Detected Features")
-                st.markdown(st.session_state.ai_analysis_results.get('features', 'No feature information available.'))
+                features = st.session_state.ai_analysis_results.get('features_detected', [])
+                if features:
+                    for feature in features:
+                        st.markdown(f"- {feature}")
+                else:
+                    st.markdown("No feature information available.")
                 
             with analysis_tabs[1]:
                 st.markdown("### Interpretation & Insights")
-                st.markdown(st.session_state.ai_analysis_results.get('interpretation', 'No interpretation available.'))
+                # Combine environmental patterns and summary for interpretation
+                patterns = st.session_state.ai_analysis_results.get('environmental_patterns', [])
+                summary = st.session_state.ai_analysis_results.get('summary', '')
+                
+                if patterns:
+                    st.markdown("#### Environmental Patterns")
+                    for pattern in patterns:
+                        st.markdown(f"- {pattern}")
+                
+                if summary:
+                    st.markdown("#### Summary")
+                    st.markdown(summary)
+                    
+                if not patterns and not summary:
+                    st.markdown("No interpretation available.")
                 
             with analysis_tabs[2]:
                 st.markdown("### Technical Analysis")
-                st.markdown(st.session_state.ai_analysis_results.get('technical', 'No technical analysis available.'))
+                # Combine filter effects, applications and recommendations for technical analysis
+                filter_effects = st.session_state.ai_analysis_results.get('filter_effects', [])
+                applications = st.session_state.ai_analysis_results.get('applications', [])
+                recommendations = st.session_state.ai_analysis_results.get('recommendations', [])
+                
+                if filter_effects:
+                    st.markdown("#### Filter Effects")
+                    for effect in filter_effects:
+                        st.markdown(f"- {effect}")
+                
+                if applications:
+                    st.markdown("#### Potential Applications")
+                    for app in applications:
+                        st.markdown(f"- {app}")
+                
+                if recommendations:
+                    st.markdown("#### Recommendations")
+                    for rec in recommendations:
+                        st.markdown(f"- {rec}")
+                
+                if not filter_effects and not applications and not recommendations:
+                    st.markdown("No technical analysis available.")
     
     # Satellite Orbits Tab
     with main_tabs[4]:
