@@ -29,6 +29,7 @@ from modules import land_cover
 from modules import time_series, change_detection
 # Import topography and railways detection modules
 from modules import topography, railways
+from modules import satellite_orbit
 # Import local analysis module (for AI-independent analysis)
 from modules import local_analysis
 
@@ -543,7 +544,7 @@ with st.sidebar:
 # Main content area
 if st.session_state.preprocessed_image is not None:
     # Create tabs for visualization and analysis
-    main_tabs = st.tabs(["Visualization", "Spectral Analysis", "Land Cover", "Change Detection", "AI Analysis", "Report Generation", "Settings"])
+    main_tabs = st.tabs(["Visualization", "Spectral Analysis", "Land Cover", "Change Detection", "AI Analysis", "Satellite Orbits", "Report Generation", "Settings"])
     
     # Visualization Tab
     with main_tabs[0]:
