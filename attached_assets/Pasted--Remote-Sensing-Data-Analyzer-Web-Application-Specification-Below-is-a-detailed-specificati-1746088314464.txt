@@ -1,0 +1,180 @@
+# 🌍 Remote Sensing Data Analyzer — Web Application Specification
+
+Below is a detailed specification for building the **Remote Sensing Data Analyzer with Frequency-Domain Filtering**, a user-friendly web application designed for environmental scientists, GIS analysts, and developers to process and analyze satellite imagery using frequency-domain techniques.
+
+---
+
+## 📌 Project Title
+**Remote Sensing Data Analyzer with Frequency-Domain Filtering**  
+*Effortless frequency-based feature extraction for satellite imagery*
+
+---
+
+## 🎯 Objective
+
+### Primary Objective
+Develop a web application that enables users to:
+- **Upload** satellite imagery in various formats (JPG, PNG, GeoTIFF).
+- **Visualize** the frequency-domain representation of images using Fourier Transforms.
+- **Apply** customizable frequency filters (low-pass, high-pass, band-stop) to highlight or suppress spatial features.
+- **Compare** original and processed images side-by-side.
+- **Download** filtered images for further analysis or reporting.
+
+### Secondary Objectives
+- Provide advanced tools such as NDVI computation, texture-based classification, and geo-referenced overlays.
+- Optimize performance for handling large image datasets.
+- Deliver a smooth, interactive user experience with real-time filter previews.
+
+By completing this project, users will understand how spatial textures (e.g., smooth water surfaces or urban structures) relate to specific frequency bands, enhancing their ability to analyze remote sensing data.
+
+---
+
+## 📦 Features Summary
+
+| **Feature**                | **Description**                                                                                              |
+|----------------------------|--------------------------------------------------------------------------------------------------------------|
+| **Image Upload**           | Supports JPEG, PNG, and GeoTIFF formats; handles single-band (grayscale) or multi-band images automatically. |
+| **Automatic Preprocessing**| Converts multi-band images to grayscale or extracts specific bands (e.g., Red, NIR) for analysis.            |
+| **FFT Spectrum Viewer**    | Computes 2D FFT, centers zero-frequency component, and displays a log-scaled magnitude spectrum.             |
+| **Filter Selection**       | Offers low-pass, high-pass, and band-stop filters with interactive sliders for cutoff frequencies.           |
+| **Real-Time Preview**      | Applies filters dynamically and updates the processed image without full-page reloads.                       |
+| **Comparison Dashboard**   | Displays Original Image, FFT Spectrum, and Filtered Output side-by-side.                                     |
+| **Image Export**           | Allows downloading filtered images in the same resolution and format as the input.                           |
+| **Advanced Options**       | Includes NDVI computation, texture-based classification, and geo-referenced map overlays.                    |
+
+---
+
+## 🏗️ System Architecture & Folder Layout
+
+```
+remote_sensing_app/
+│
+├── app.py                 # Main Streamlit application
+├── filters.py             # Frequency-domain filtering functions
+├── utils.py               # FFT/IFFT, normalization, and plotting utilities
+├── image_processor.py     # Image input/output and preprocessing
+├── requirements.txt       # Python dependencies
+├── README.md              # Quickstart guide and usage examples
+├── .env                   # Environment variables for configuration
+├── tests/                 # Unit tests for critical functions
+├── sample_data/           # Example images for testing and demos
+├── assets/                # UI assets (logos, CSS, icons)
+└── modules/               # Advanced feature modules
+    ├── ndvi.py            # NDVI computation logic
+    ├── classification.py  # Texture extraction and classification
+    └── map_overlay.py     # Geo-referenced map overlays with Folium
+```
+
+### Component Interaction
+- **app.py**: Serves as the entry point, orchestrating the UI and calling other modules.
+- **image_processor.py**: Reads and preprocesses images based on format and band requirements.
+- **utils.py**: Provides core functions like FFT computation and visualization.
+- **filters.py**: Implements filter mask creation and application.
+- **modules/**: Contains optional advanced features, keeping the core app modular.
+
+---
+
+## 🔬 Detailed Workflow
+
+### 1. Image Upload & Preprocessing
+- **Input**: User uploads an image via Streamlit’s file uploader.
+- **Processing**:
+  - **JPG/PNG**: Loaded as RGB or grayscale; converted to grayscale if multi-channel.
+  - **GeoTIFF**: Read using `rasterio`; if multi-band, offer band selection (e.g., Red, NIR).
+  - **Resize**: Optionally downscale large images (e.g., >1024×1024) for performance.
+
+### 2. Frequency-Domain Conversion
+- **Steps**:
+  1. Compute 2D FFT with `np.fft.fft2(img_array)` to get a complex frequency matrix.
+  2. Shift zero-frequency component to center using `np.fft.fftshift()`.
+  3. Calculate magnitude spectrum: `20 * np.log10(np.abs(fft_shifted) + 1)` for visualization.
+- **Output**: Display log-scaled spectrum as a heatmap using Matplotlib.
+
+### 3. Filter Mask Creation
+- **Low-Pass Filter**: Circular mask retaining frequencies within radius *R_low*.
+- **High-Pass Filter**: Inverse of low-pass, retaining frequencies beyond radius *R_high*.
+- **Band-Stop Filter**: Ring-shaped mask excluding frequencies between *R1* and *R2*.
+- **Enhancement**: Option to apply Gaussian tapering to reduce ringing artifacts.
+
+### 4. Applying Filters & Inverse Transform
+- **Process**:
+  1. Multiply FFT with mask: `fft_shifted * mask`.
+  2. Inverse shift: `np.fft.ifftshift(filtered_fft)`.
+  3. Perform inverse FFT: `np.fft.ifft2()` to return to spatial domain.
+  4. Extract real part and normalize to 0–255 range (e.g., using `skimage.exposure.rescale_intensity`).
+- **Output**: Filtered image as `uint8` for display and export.
+
+### 5. UI & Interaction
+- **Sidebar**:
+  - File uploader.
+  - Band selector (for GeoTIFF).
+  - Filter type (radio buttons: Low-pass, High-pass, Band-stop).
+  - Sliders for cutoff radii (e.g., single radius for low/high-pass, two for band-stop).
+  - Checkbox for Gaussian smoothing.
+- **Main Panel**:
+  - Three columns: Original Image, FFT Spectrum, Filtered Image.
+  - Download button for filtered output.
+
+---
+
+## 🛠️ Technology Stack & Dependencies
+
+**requirements.txt**:
+```
+streamlit
+numpy
+scipy
+opencv-python
+pillow
+matplotlib
+rasterio
+scikit-image
+folium
+scikit-learn  # Optional, for classification
+```
+
+- Use a virtual environment (e.g., `venv` or `conda`) for dependency management.
+
+---
+
+## 📈 Deployment & Testing
+- **Local Run**: `streamlit run app.py`.
+- **Docker**:
+  ```dockerfile
+  FROM python:3.10-slim
+  WORKDIR /app
+  COPY . /app
+  RUN pip install --no-cache-dir -r requirements.txt
+  EXPOSE 8501
+  ENTRYPOINT ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+  ```
+- **Cloud Deployment**: Use Streamlit Cloud or Render.com with GitHub integration.
+
+### Testing
+- **Unit Tests** (in `tests/`):
+  - Verify filter mask shapes and values.
+  - Ensure FFT/IFFT pipeline preserves image integrity.
+  - Test edge cases (e.g., small images, invalid uploads).
+
+---
+
+## 📘 Usage Examples
+**README.md** should include:
+1. **Upload GeoTIFF**: Select NIR band, view FFT spectrum.
+2. **Apply Low-Pass Filter**: Smooth image with radius 50.
+3. **Band-Stop Filter**: Remove periodic noise (e.g., urban grids).
+4. **NDVI**: Compute vegetation index from Red and NIR bands.
+
+*(Screenshots to be added for each example.)*
+
+---
+
+## 📖 Developer Notes
+- **Large Images**: Use `rasterio` windowed reading for >4096×4096 images.
+- **Performance**: Cache FFT in Streamlit’s session state to avoid recomputation.
+- **Responsiveness**: Debounce slider updates or apply filters on button click.
+- **Modularity**: Keep advanced features in `modules/` for easy extension.
+
+---
+
+This specification outlines a robust, interactive tool for frequency-domain analysis of remote sensing data, meeting both primary and secondary objectives while ensuring usability and scalability.
