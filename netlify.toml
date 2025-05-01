@@ -1,11 +1,9 @@
 [build]
-  command = "chmod +x netlify_build.sh && ./netlify_build.sh"
-  publish = "."
-
-[build.environment]
-  PYTHON_VERSION = "3.9"
+  command = "mkdir -p public && cp index.html public/"
+  publish = "public"
 
 [[redirects]]
   from = "/*"
-  to = "/index.html"
-  status = 200
+  to = "https://remote-sensing-analyzer.onrender.com"
+  status = 301
+  force = true

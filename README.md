@@ -417,9 +417,10 @@ Netlify is primarily designed for static sites, but we can use it to create a la
 
 2. **Configure the site**:
    - The build settings are already configured in `netlify.toml`:
-     - Build command: `chmod +x netlify_build.sh && ./netlify_build.sh`
-     - Publish directory: `.`
+     - Build command: `mkdir -p public && cp index.html public/`
+     - Publish directory: `public`
    - No additional configuration is needed
+   - This simple approach creates a static site that redirects to the Render deployment
 
 3. **Deploy**:
    - Click "Deploy site"
@@ -506,12 +507,11 @@ If you encounter issues during deployment, here are some common problems and sol
 9. **Netlify Deployment Issues**:
    - Error message: `python-build: definition not found: python-3.11.0`
    - This is caused by Netlify trying to use a Python version that isn't available
-   - The repository now includes configuration files for Netlify:
-     - `netlify.toml`: Specifies the build command and environment
-     - `runtime.txt`: Specifies the Python version (3.9.18)
-     - `.python-version`: Another way to specify the Python version
-     - `netlify_build.sh`: A custom build script for Netlify
-   - If you encounter this error, make sure these files are present and correctly configured
+   - The repository now includes a simplified approach for Netlify:
+     - `netlify.toml`: Specifies a simple build command and redirect rules
+     - `index.html`: A static HTML page that redirects to the Render deployment
+   - This approach avoids Python version issues by not using Python at all
+   - If you encounter deployment issues, check that these files are present and correctly configured
 
 ### Git Commands for Contributing
 
