@@ -1,0 +1,9 @@
+[build]
+  publish = "."
+  command = "echo 'Static site, no build needed'"
+
+[[redirects]]
+  from = "/*"
+  to = "https://remote-sensing-analyzer.onrender.com"
+  status = 301
+  force = true

@@ -407,7 +407,7 @@ This repository includes a `render.yaml` file that defines the infrastructure ne
 
 Netlify is primarily designed for static sites, but we can use it to create a landing page that redirects to our Render deployment:
 
-#### Option 1: Deploy from GitHub
+#### Option 1: Deploy from GitHub (Recommended)
 
 1. **Create a new site on Netlify**:
    - Sign in to your Netlify account
@@ -416,15 +416,15 @@ Netlify is primarily designed for static sites, but we can use it to create a la
    - Select the repository: `Icradle-Innovations-Ltd/RemoteSensingAnalyzer`
 
 2. **Configure the site**:
-   - The build settings are already configured in `netlify.toml`:
-     - Build command: `echo 'No build command needed'`
-     - Publish directory: `public`
-   - No additional configuration is needed
-   - This approach creates a completely static site that redirects to the Render deployment
-   - It avoids all Python and Node.js dependencies
-   - The `public` directory contains:
+   - Set the base directory to `netlify-static`
+   - Set the publish directory to `.`
+   - Set the build command to `echo 'Static site, no build needed'`
+   - This approach uses a completely separate directory for Netlify deployment
+   - It avoids all issues with Python dependencies and other build requirements
+   - The `netlify-static` directory contains:
      - `index.html`: A static HTML page with automatic and manual redirects
      - `_redirects`: A Netlify-specific file that handles redirects
+     - `netlify.toml`: Configuration for Netlify
 
 3. **Deploy**:
    - Click "Deploy site"
@@ -511,23 +511,21 @@ If you encounter issues during deployment, here are some common problems and sol
 9. **Netlify Deployment Issues**:
    - Error messages like `python-build: definition not found`, `404 (Not Found)`, or `No matching distribution found for streamlit==1.45.0`
    - These issues are caused by Netlify trying to install Python dependencies
-   - The repository now includes a completely static approach for Netlify:
-     - `netlify.toml`: Specifies no build command and the public directory
-     - `public/index.html`: A static HTML page that redirects to the Render deployment
-     - `public/_redirects`: A Netlify-specific file that handles redirects
-     - `.netlifyignore`: Ignores all Python files and dependencies
-     - `.npmrc`: Prevents npm from installing dependencies
-     - `.nvmrc`: Specifies the Node.js version
-   - This approach avoids all dependency issues by not using any build process
+   - The repository now includes a completely separate directory for Netlify deployment:
+     - `netlify-static/`: A directory containing only the files needed for Netlify
+     - `netlify-static/index.html`: A static HTML page that redirects to the Render deployment
+     - `netlify-static/_redirects`: A Netlify-specific file that handles redirects
+     - `netlify-static/netlify.toml`: Configuration for Netlify
+   - This approach avoids all dependency issues by completely separating the Netlify deployment from the main application
    - If you encounter deployment issues:
-     - Make sure you're using the latest `netlify.toml` configuration
-     - Check that the `public` directory exists and contains `index.html` and `_redirects`
-     - Set the publish directory to `public` in the Netlify dashboard
+     - Make sure you're using the `netlify-static` directory as the base directory
+     - Set the publish directory to `.` in the Netlify dashboard
+     - Set the build command to `echo 'Static site, no build needed'`
      - Try clearing the Netlify cache and redeploying
      - In the Netlify dashboard, go to Site settings > Build & deploy > Continuous Deployment > Build settings and set:
-       - Base directory: Not set
-       - Build command: `echo 'No build needed'`
-       - Publish directory: `public`
+       - Base directory: `netlify-static`
+       - Build command: `echo 'Static site, no build needed'`
+       - Publish directory: `.`
 
 ### Git Commands for Contributing
 
