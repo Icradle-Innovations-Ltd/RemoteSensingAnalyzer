@@ -51,6 +51,12 @@ The Remote Sensing Data Analyzer is a comprehensive tool for analyzing satellite
 - Receive insights and recommendations based on detected patterns
 - Generate comprehensive reports combining human and AI expertise
 
+### Satellite Orbit Visualization
+- Interactive 3D animations of satellite orbits and movement
+- Satellite coverage maps for specific locations
+- Comprehensive information tables optimized for visibility in dark mode
+- Educational visualizations of orbital mechanics and satellite capabilities
+
 ## Applications
 
 - Environmental monitoring and conservation
@@ -428,6 +434,97 @@ To use different AI providers, you'll need to:
 3. Select your preferred provider for analysis
 
 Remember that different providers may have different rate limits and pricing structures.
+""",
+
+        "satellite_orbit": """
+# Satellite Orbit Visualization Guide
+
+## Introduction to Satellite Orbits
+
+Satellite orbit visualization helps you understand how remote sensing satellites move around Earth and collect imagery. This knowledge is essential for planning image acquisition, interpreting coverage patterns, and understanding the temporal aspects of satellite data.
+
+## Available Visualizations
+
+The Satellite Orbit tab provides three main visualizations:
+
+### 3D Orbit Animation
+- Interactive 3D animation showing satellite movement
+- Customizable animation duration
+- Option to display ground track
+- Real-time visualization of satellite position and field of view
+
+### Coverage Map
+- Displays satellite coverage for specific locations
+- Shows swath width and imaging area
+- Calculates how long a location is visible to the satellite
+- Helps in planning optimal image acquisition times
+
+### Satellite Information
+- Comprehensive table displaying key satellite parameters
+- Enhanced for visibility with white background and black text for dark mode
+- Details about altitude, inclination, orbital period, and more
+- Reference information about various remote sensing satellites
+
+## Understanding Orbital Parameters
+
+### Altitude
+- Height above Earth's surface (km)
+- Affects spatial resolution, field of view, and revisit time
+- Higher altitudes provide broader coverage but lower resolution
+
+### Inclination
+- Angle between orbital plane and Earth's equator (degrees)
+- Determines latitude coverage of the satellite
+- Polar orbits (near 90°) provide global coverage
+
+### Orbital Period
+- Time taken to complete one full orbit
+- Typically 90-100 minutes for LEO satellites
+- Determines how frequently a satellite passes over the same area
+
+### Swath Width
+- Width of area imaged in a single pass
+- Wider swaths allow more frequent revisits
+- Trade-off between swath width and spatial resolution
+
+## Common Orbit Types
+
+### Low Earth Orbit (LEO)
+- Typically 500-1000 km altitude
+- Used by most Earth observation satellites
+- Provides high resolution but narrow swath width
+
+### Polar Orbit
+- Orbit that passes over or near both poles
+- Allows imaging of the entire Earth as it rotates underneath
+- Common for mapping and monitoring applications
+
+### Sun-Synchronous Orbit
+- Special polar orbit that maintains constant solar illumination
+- Passes over the same area at the same local time
+- Ideal for consistent imaging conditions
+
+### Geostationary Orbit
+- 35,786 km altitude, directly above the equator
+- Remains over the same point on Earth
+- Used primarily for weather monitoring and communications
+
+## Practical Applications
+
+### Mission Planning
+- Determine optimal acquisition times for specific locations
+- Understand revisit capabilities for time-sensitive applications
+- Plan for multiple satellite coordination
+
+### Data Interpretation
+- Connect image characteristics to satellite position and sun angle
+- Understand how orbital parameters affect image quality
+- Account for viewing angle effects in image analysis
+
+### Educational Use
+- Visualize complex orbital mechanics concepts
+- Understand the relationship between satellite motion and Earth coverage
+- Learn about different satellite missions and capabilities
 """,
 
         "satellite_data": """
