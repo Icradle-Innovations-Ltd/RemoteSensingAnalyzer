@@ -1205,32 +1205,6 @@ if st.session_state.preprocessed_image is not None:
                             "recommendations": [],
                             "summary": "Error: No AI API keys configured. Go to Settings tab to add your API keys."
                         }
-                    elif st.session_state.selected_ai_provider not in available_providers:
-                        # If selected provider is not available, use the first available one
-                        st.session_state.selected_ai_provider = available_providers[0]
-                        st.info(f"Selected provider not available. Using {available_providers[0]} instead.")
-                        
-                        # Run AI analysis with available provider
-                        analysis_results = ai_providers.analyze_satellite_image(
-                            st.session_state.preprocessed_image,
-                            st.session_state.filtered_image,
-                            filter_type,
-                            provider=st.session_state.selected_ai_provider
-                        )
-                    else:
-                        # Run AI analysis with selected provider
-                        analysis_results = ai_providers.analyze_satellite_image(
-                            st.session_state.preprocessed_image,
-                            st.session_state.filtered_image,
-                            filter_type,
-                            provider=st.session_state.selected_ai_provider
-                        )
-                    
-                    # Store results
-                    st.session_state.ai_analysis_results = analysis_results
-                    
-                    st.success("Analysis complete!")
-    
     # Satellite Orbits Tab
     with main_tabs[4]:
         st.subheader("Satellite Orbit Visualization")
@@ -1438,9 +1412,72 @@ if st.session_state.preprocessed_image is not None:
                 - **Hyperspectral:** Captures hundreds of spectral bands for detailed analysis
                 - **LIDAR:** Uses laser to measure distance and create 3D models
                 """)
-        
 
+                    elif st.session_state.selected_ai_provider not in available_providers:
+                        # If selected provider is not available, use the first available one
+                        st.session_state.selected_ai_provider = available_providers[0]
+                        st.info(f"Selected provider not available. Using {available_providers[0]} instead.")
+                        
+                        # Run AI analysis with available provider
+                        analysis_results = ai_providers.analyze_satellite_image(
+                            st.session_state.preprocessed_image,
+                            st.session_state.filtered_image,
+                            filter_type,
+                            provider=st.session_state.selected_ai_provider
+                        )
+                    else:
+                        # Run AI analysis with selected provider
+                        analysis_results = ai_providers.analyze_satellite_image(
+                            st.session_state.preprocessed_image,
+                            st.session_state.filtered_image,
+                            filter_type,
+                            provider=st.session_state.selected_ai_provider
+                        )
+                    
+                    # Store results
+                    st.session_state.ai_analysis_results = analysis_results
+                    
+                    st.success("Analysis complete!")
+        
+        # Display AI analysis results if available
+        if st.session_state.ai_analysis_results:
+            results = st.session_state.ai_analysis_results
+            
+            if 'error' in results:
+                st.error(f"Analysis error: {results['error']}")
+            else:
+                # Features detected
+                st.subheader("Features Detected")
+                for feature in results.get('features_detected', []):
+                    st.markdown(f"- {feature}")
+                
+                # Effects of filtering
+                st.subheader("Filter Effects")
+                for effect in results.get('filter_effects', []):
+                    st.markdown(f"- {effect}")
+                
+                # Environmental patterns
+                st.subheader("Environmental Patterns")
+                for pattern in results.get('environmental_patterns', []):
+                    st.markdown(f"- {pattern}")
+                
+                # Applications
+                st.subheader("Potential Applications")
+                for app in results.get('applications', []):
+                    st.markdown(f"- {app}")
+                
+                # Recommendations
+                st.subheader("Recommendations")
+                for rec in results.get('recommendations', []):
+                    st.markdown(f"- {rec}")
+                
+                # Summary
+                st.subheader("Summary")
+                st.write(results.get('summary', 'No summary available.'))
+        else:
+            st.info("Click 'Analyze with AI' to get insights about your imagery.")
     
+    # Report Generation Tab
     # Satellite Orbits Tab
     with main_tabs[5]:
         st.subheader("Satellite Orbit Visualization")
