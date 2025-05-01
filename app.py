@@ -544,7 +544,7 @@ with st.sidebar:
 # Main content area
 if st.session_state.preprocessed_image is not None:
     # Create tabs for visualization and analysis
-    main_tabs = st.tabs(["Visualization", "Spectral Analysis", "Land Cover", "Change Detection", "AI Analysis", "Satellite Orbits", "Report Generation", "Settings"])
+    main_tabs = st.tabs(["Visualization", "Spectral Analysis", "Change Detection", "AI Analysis", "Satellite Orbits", "Report Generation", "Settings"])
     
     # Visualization Tab
     with main_tabs[0]:
