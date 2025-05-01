@@ -474,19 +474,50 @@ def fetch_image_from_url(url):
         import requests
         from PIL import Image
         import io
+        import os
+        
+        # Create a temp file to save the image
+        temp_file = "temp_image.jpg"
         
         # Send a GET request to the URL
         response = requests.get(url, timeout=10)
         
         # Check if the request was successful
         if response.status_code == 200:
-            # Read the image from the response content
-            image = Image.open(io.BytesIO(response.content))
+            # Save to a temporary file first
+            with open(temp_file, 'wb') as f:
+                f.write(response.content)
             
-            # Convert PIL Image to numpy array
-            image_array = np.array(image)
+            # Use OpenCV to read the image (more reliable than PIL for different formats)
+            image_array = cv2.imread(temp_file)
             
-            return image_array, None
+            # If image was loaded successfully with OpenCV
+            if image_array is not None:
+                # Convert BGR to RGB (OpenCV uses BGR)
+                image_array = cv2.cvtColor(image_array, cv2.COLOR_BGR2RGB)
+                
+                # Remove the temporary file
+                os.remove(temp_file)
+                
+                return image_array, None
+            else:
+                # Try with PIL as a fallback
+                try:
+                    # Read the image from the file
+                    image = Image.open(temp_file)
+                    
+                    # Convert PIL Image to numpy array
+                    image_array = np.array(image)
+                    
+                    # Remove the temporary file
+                    os.remove(temp_file)
+                    
+                    return image_array, None
+                except Exception as inner_e:
+                    # Clean up the temp file if it exists
+                    if os.path.exists(temp_file):
+                        os.remove(temp_file)
+                    return None, f"Error processing image: {str(inner_e)}"
         else:
             return None, f"Failed to fetch image: HTTP status code {response.status_code}"
             

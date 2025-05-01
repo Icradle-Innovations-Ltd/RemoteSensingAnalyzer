@@ -58,8 +58,13 @@ def detect_hills_mountains(image, min_height=0.2, slope_threshold=0.15, smoothin
     # Use both brightness and local texture for better height estimation
     height_estimate = smoothed_img.copy()
     
-    # Identify potential ridges using ridge detection
-    ridges = feature.ridge_detection(smoothed_img, sigma=1.0)
+    # Identify potential ridges using Hessian-based ridge detection
+    # Use feature.hessian_matrix instead of ridge_detection which might not be available
+    H_elems = feature.hessian_matrix(smoothed_img, sigma=1.0)
+    # Compute eigenvalues of the Hessian matrix
+    ridges = feature.hessian_matrix_eigvals(H_elems)[0]
+    # Threshold to get ridge mask
+    ridges = ridges > 0.05
     
     # Enhance height estimate by accounting for ridge intensity
     height_estimate[ridges > 0] = height_estimate[ridges > 0] * 1.2
@@ -156,12 +161,17 @@ def detect_ridges_valleys(image, sigma=1.0, threshold=0.05):
     # Apply smoothing to reduce noise
     smoothed_img = ndimage.gaussian_filter(gray_img, sigma=sigma)
     
-    # Apply ridge detection
-    ridges = feature.ridge_detection(smoothed_img, sigma=sigma)[0] > threshold
+    # Apply Hessian-based ridge detection instead of ridge_detection 
+    # (which might not be available in this skimage version)
+    H_elems = feature.hessian_matrix(smoothed_img, sigma=sigma)
+    ridges = feature.hessian_matrix_eigvals(H_elems)[0]
+    ridges = ridges > threshold
     
-    # For valleys, invert the image and detect ridges
+    # For valleys, invert the image and use the same approach
     inverted_img = 1.0 - smoothed_img
-    valleys = feature.ridge_detection(inverted_img, sigma=sigma)[0] > threshold
+    H_elems_inv = feature.hessian_matrix(inverted_img, sigma=sigma)
+    valleys = feature.hessian_matrix_eigvals(H_elems_inv)[0]
+    valleys = valleys > threshold
     
     # Clean up with morphological operations
     ridges = morphology.remove_small_objects(ridges, min_size=10)
