@@ -1,6 +1,10 @@
 [build]
-  command = "mkdir -p public && cp index.html public/"
-  publish = "public"
+  publish = "."
+  command = "echo 'No build command needed'"
+
+[build.environment]
+  NODE_VERSION = "16"
+  PYTHON_VERSION = "3.8"
 
 [[redirects]]
   from = "/*"

@@ -417,10 +417,11 @@ Netlify is primarily designed for static sites, but we can use it to create a la
 
 2. **Configure the site**:
    - The build settings are already configured in `netlify.toml`:
-     - Build command: `mkdir -p public && cp index.html public/`
-     - Publish directory: `public`
+     - Build command: `echo 'No build command needed'`
+     - Publish directory: `.`
    - No additional configuration is needed
-   - This simple approach creates a static site that redirects to the Render deployment
+   - This approach creates a completely static site that redirects to the Render deployment
+   - It avoids all Python and Node.js dependencies
 
 3. **Deploy**:
    - Click "Deploy site"
@@ -505,13 +506,16 @@ If you encounter issues during deployment, here are some common problems and sol
    - If you encounter this warning, run `python fix_streamlit_config.py`
 
 9. **Netlify Deployment Issues**:
-   - Error message: `python-build: definition not found: python-3.11.0`
+   - Error message: `python-build: definition not found: python-3.9`
    - This is caused by Netlify trying to use a Python version that isn't available
-   - The repository now includes a simplified approach for Netlify:
-     - `netlify.toml`: Specifies a simple build command and redirect rules
+   - The repository now includes a completely static approach for Netlify:
+     - `netlify.toml`: Specifies no build command and redirect rules
      - `index.html`: A static HTML page that redirects to the Render deployment
-   - This approach avoids Python version issues by not using Python at all
-   - If you encounter deployment issues, check that these files are present and correctly configured
+   - This approach avoids all dependency issues by not using any build process
+   - If you encounter deployment issues:
+     - Make sure you're using the latest `netlify.toml` configuration
+     - Remove any Python version files (`.python-version`, `runtime.txt`)
+     - Set the publish directory to `.` (root) in the Netlify dashboard
 
 ### Git Commands for Contributing
 
