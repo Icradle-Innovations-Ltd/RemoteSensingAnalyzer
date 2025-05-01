@@ -4,7 +4,7 @@
   "description": "A comprehensive Streamlit web application for analyzing satellite and remote sensing imagery",
   "main": "index.html",
   "scripts": {
-    "build": "chmod +x netlify_build.sh && ./netlify_build.sh"
+    "build": "echo 'No build needed'"
   },
   "engines": {
     "node": ">=14.0.0"

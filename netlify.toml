@@ -2,10 +2,6 @@
   publish = "public"
   command = "echo 'No build command needed'"
 
-[build.environment]
-  NODE_VERSION = "16"
-  PYTHON_VERSION = "3.8"
-
 [[redirects]]
   from = "/*"
   to = "https://remote-sensing-analyzer.onrender.com"

@@ -509,18 +509,25 @@ If you encounter issues during deployment, here are some common problems and sol
    - If you encounter this warning, run `python fix_streamlit_config.py`
 
 9. **Netlify Deployment Issues**:
-   - Error message: `python-build: definition not found: python-3.9` or `404 (Not Found)`
-   - These issues are caused by Netlify configuration problems
+   - Error messages like `python-build: definition not found`, `404 (Not Found)`, or `No matching distribution found for streamlit==1.45.0`
+   - These issues are caused by Netlify trying to install Python dependencies
    - The repository now includes a completely static approach for Netlify:
      - `netlify.toml`: Specifies no build command and the public directory
      - `public/index.html`: A static HTML page that redirects to the Render deployment
      - `public/_redirects`: A Netlify-specific file that handles redirects
+     - `.netlifyignore`: Ignores all Python files and dependencies
+     - `.npmrc`: Prevents npm from installing dependencies
+     - `.nvmrc`: Specifies the Node.js version
    - This approach avoids all dependency issues by not using any build process
    - If you encounter deployment issues:
      - Make sure you're using the latest `netlify.toml` configuration
      - Check that the `public` directory exists and contains `index.html` and `_redirects`
      - Set the publish directory to `public` in the Netlify dashboard
      - Try clearing the Netlify cache and redeploying
+     - In the Netlify dashboard, go to Site settings > Build & deploy > Continuous Deployment > Build settings and set:
+       - Base directory: Not set
+       - Build command: `echo 'No build needed'`
+       - Publish directory: `public`
 
 ### Git Commands for Contributing
 
