@@ -27,6 +27,10 @@ from modules import satellite_fetcher
 from modules import land_cover
 # Import time series and change detection modules
 from modules import time_series, change_detection
+# Import topography and railways detection modules
+from modules import topography, railways
+# Import local analysis module (for AI-independent analysis)
+from modules import local_analysis
 
 # Set page configuration
 st.set_page_config(
@@ -69,8 +73,58 @@ with st.sidebar:
     st.header("Upload & Controls")
     
     # File uploader
-    uploaded_file = st.file_uploader("Upload an image (JPG, PNG, or GeoTIFF)", 
-                                    type=["jpg", "jpeg", "png", "tif", "tiff"])
+    upload_tab, url_tab = st.tabs(["Upload File", "Fetch from URL"])
+    
+    with upload_tab:
+        uploaded_file = st.file_uploader("Upload an image (JPG, PNG, or GeoTIFF)", 
+                                        type=["jpg", "jpeg", "png", "tif", "tiff"])
+    
+    with url_tab:
+        image_url = st.text_input("Enter image URL:", 
+                                  placeholder="https://example.com/satellite_image.jpg")
+        
+        fetch_button = st.button("Fetch Image")
+        
+        if fetch_button and image_url:
+            with st.spinner("Fetching image from URL..."):
+                # Fetch image from URL
+                try:
+                    image_array, error = local_analysis.fetch_image_from_url(image_url)
+                    
+                    if error:
+                        st.error(f"Error fetching image: {error}")
+                    elif image_array is not None:
+                        # Create a virtual file for compatibility with the rest of the code
+                        from io import BytesIO
+                        from PIL import Image
+                        
+                        # Convert to PIL Image and then to bytes
+                        if len(image_array.shape) == 3 and image_array.shape[2] == 4:
+                            # If RGBA, convert to RGB
+                            image_pil = Image.fromarray(image_array).convert('RGB')
+                        else:
+                            image_pil = Image.fromarray(image_array)
+                        
+                        buf = BytesIO()
+                        image_pil.save(buf, format="JPEG")
+                        buf.seek(0)
+                        
+                        # Create a mock uploaded_file with necessary attributes
+                        class MockUploadedFile:
+                            def __init__(self, buf, filename):
+                                self.buf = buf
+                                self.name = filename
+                                self.type = "image/jpeg"
+                            
+                            def getvalue(self):
+                                return self.buf.getvalue()
+                        
+                        # Create the mock file
+                        uploaded_file = MockUploadedFile(buf, "fetched_image.jpg")
+                        
+                        st.success("Image fetched successfully!")
+                except Exception as e:
+                    st.error(f"Error processing fetched image: {str(e)}")
     
     # Only show the rest of the controls if an image is uploaded
     if uploaded_file is not None:
@@ -258,7 +312,8 @@ with st.sidebar:
                 
                 feature_options = st.selectbox(
                     "Select feature to detect:",
-                    ["Texture Analysis", "Water Bodies", "Urban Areas", "Frequency Patterns"]
+                    ["Texture Analysis", "Water Bodies", "Urban Areas", "Frequency Patterns", 
+                     "Hills & Mountains", "Railways & Roads", "Local Image Analysis"]
                 )
                 
                 if st.button("Detect Features"):
@@ -351,6 +406,129 @@ with st.sidebar:
                                             st.write(f"- Intensity: {prop['intensity']:.3f}")
                                 else:
                                     st.error("FFT spectrum not available. Please recompute.")
+                                    
+                            elif feature_options == "Hills & Mountains":
+                                # Detect hills and mountains
+                                hills_mask, height_estimate = topography.detect_hills_mountains(
+                                    st.session_state.preprocessed_image,
+                                    min_height=0.2,
+                                    slope_threshold=0.15
+                                )
+                                
+                                # Detect ridges and valleys for visualization
+                                ridges, valleys = topography.detect_ridges_valleys(
+                                    st.session_state.preprocessed_image
+                                )
+                                
+                                # Create visualization
+                                terrain_viz = topography.create_terrain_visualization(
+                                    st.session_state.preprocessed_image,
+                                    hills_mask,
+                                    ridges,
+                                    valleys
+                                )
+                                
+                                # Store results
+                                st.session_state.filtered_image = terrain_viz
+                                
+                                # Analyze terrain features
+                                terrain_analysis = topography.analyze_terrain_features(
+                                    st.session_state.preprocessed_image
+                                )
+                                
+                                # Display terrain analysis
+                                st.info("Terrain detection complete!")
+                                st.write("#### Terrain Analysis")
+                                st.write(f"- Hill coverage: {terrain_analysis['hill_percentage']:.2f}% of the image")
+                                st.write(f"- Ridge length: {terrain_analysis['ridge_length_pixels']} pixels")
+                                st.write(f"- Valley length: {terrain_analysis['valley_length_pixels']} pixels")
+                                
+                                # Store full analysis for reporting
+                                st.session_state.terrain_analysis = terrain_analysis
+                                
+                            elif feature_options == "Railways & Roads":
+                                # Detect railways and roads
+                                railways_mask, railway_properties = railways.detect_railways(
+                                    st.session_state.preprocessed_image,
+                                    direction_tolerance=30,
+                                    min_length=15,
+                                    threshold=0.6
+                                )
+                                
+                                # Create visualization
+                                railway_viz = railways.create_railway_visualization(
+                                    st.session_state.preprocessed_image,
+                                    railways_mask
+                                )
+                                
+                                # Store results
+                                st.session_state.filtered_image = railway_viz
+                                
+                                # Analyze railway network
+                                railway_analysis = railways.analyze_railway_network(
+                                    railways_mask,
+                                    railway_properties
+                                )
+                                
+                                # Display railway analysis
+                                st.info("Railway detection complete!")
+                                st.write("#### Railway Network Analysis")
+                                st.write(f"- Total length: {railway_analysis['network_length_pixels']:.1f} pixels")
+                                st.write(f"- Number of segments: {railway_analysis['segment_count']}")
+                                
+                                if 'main_direction_degrees' in railway_analysis:
+                                    st.write(f"- Main direction: {railway_analysis['main_direction_degrees']:.1f}°")
+                                
+                                if 'intersection_count' in railway_analysis:
+                                    st.write(f"- Intersections: {railway_analysis['intersection_count']}")
+                                
+                                # Store full analysis for reporting
+                                st.session_state.railway_analysis = railway_analysis
+                                
+                            elif feature_options == "Local Image Analysis":
+                                # Run local analysis that doesn't depend on external APIs
+                                local_results = local_analysis.analyze_image_content(
+                                    st.session_state.preprocessed_image
+                                )
+                                
+                                # Generate report from local analysis
+                                local_report = local_analysis.generate_analysis_report(local_results)
+                                
+                                # Keep original image for display
+                                st.session_state.filtered_image = st.session_state.preprocessed_image
+                                
+                                # Store analysis results
+                                st.session_state.local_analysis_results = local_results
+                                st.session_state.local_report = local_report
+                                
+                                # Display summary of analysis
+                                st.info("Local image analysis complete!")
+                                
+                                # Show primary classification
+                                if 'content_classification' in local_results:
+                                    primary = local_results['content_classification'].get('primary_category', 'Unknown')
+                                    subcategory = local_results['content_classification'].get('subcategory', '')
+                                    
+                                    st.write(f"#### Primary Classification: {primary}")
+                                    if subcategory:
+                                        st.write(f"Subcategory: {subcategory}")
+                                    
+                                    # Show natural vs built percentages
+                                    if 'natural_vs_built' in local_results['content_classification']:
+                                        nat = local_results['content_classification']['natural_vs_built']['natural_likelihood']
+                                        built = local_results['content_classification']['natural_vs_built']['built_likelihood']
+                                        
+                                        st.write(f"Natural features: {nat:.1f}%")
+                                        st.write(f"Built/human-made features: {built:.1f}%")
+                                
+                                # Show textural properties
+                                if 'texture' in local_results:
+                                    texture_type = local_results['texture'].get('type', 'Unknown')
+                                    st.write(f"Texture type: {texture_type}")
+                                    
+                                # Show detailed analysis in expander
+                                with st.expander("View Full Analysis Report"):
+                                    st.markdown(local_report)
                 
                 # Geo-referenced overlay is only applicable for GeoTIFF
                 if st.session_state.is_geotiff:
@@ -365,7 +543,7 @@ with st.sidebar:
 # Main content area
 if st.session_state.preprocessed_image is not None:
     # Create tabs for visualization and analysis
-    main_tabs = st.tabs(["Visualization", "Spectral Analysis", "Change Detection", "AI Analysis", "Report Generation", "Settings"])
+    main_tabs = st.tabs(["Visualization", "Spectral Analysis", "Land Cover", "Change Detection", "AI Analysis", "Report Generation", "Settings"])
     
     # Visualization Tab
     with main_tabs[0]:
