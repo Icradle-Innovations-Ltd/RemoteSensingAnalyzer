@@ -12,8 +12,14 @@ def check_and_fix_streamlit_config():
     """Check and fix the Streamlit configuration."""
     print("Checking Streamlit configuration...")
     
+    # Print current working directory for debugging
+    cwd = os.getcwd()
+    print(f"Current working directory: {cwd}")
+    
     # Create .streamlit directory if it doesn't exist
-    os.makedirs('.streamlit', exist_ok=True)
+    streamlit_dir = '.streamlit'
+    os.makedirs(streamlit_dir, exist_ok=True)
+    print(f"Streamlit config directory: {os.path.abspath(streamlit_dir)}")
     
     config_path = '.streamlit/config.toml'
     
@@ -60,6 +66,11 @@ def check_and_fix_streamlit_config():
                 # Write the fixed config
                 with open(config_path, 'w') as f:
                     toml.dump(config, f)
+                
+                # Print the updated configuration for verification
+                print("  Updated configuration:")
+                print(f"  enableCORS = {config['server']['enableCORS']}")
+                print(f"  enableXsrfProtection = {config['server']['enableXsrfProtection']}")
                 
                 print("✅ Streamlit configuration fixed")
             else:

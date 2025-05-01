@@ -152,4 +152,8 @@ python setup_fallbacks.py
 echo "Fixing Streamlit configuration..."
 python fix_streamlit_config.py
 
+# Create Streamlit configuration for Render
+echo "Creating Streamlit configuration for Render..."
+python render_streamlit_config.py
+
 echo "Python 3.9 build completed successfully!"

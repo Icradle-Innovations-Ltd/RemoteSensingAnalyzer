@@ -43,8 +43,20 @@ This application provides a powerful platform for environmental scientists, GIS 
 3. **Run the Application**:
    ```
    .venv\Scripts\activate
+   python start.py
+   ```
+   
+   Alternatively, you can run the Streamlit app directly:
+   ```
+   .venv\Scripts\activate
    streamlit run app.py
    ```
+   
+   The `start.py` script runs all the necessary setup before starting the Streamlit app, including:
+   - Fixing numpy compatibility issues
+   - Setting up fallbacks for missing dependencies
+   - Fixing Streamlit configuration issues
+   - Creating Streamlit configuration for Render
 
 ### Manual Installation
 
@@ -78,8 +90,19 @@ This application provides a powerful platform for environmental scientists, GIS 
 
 5. **Run the Application**:
    ```bash
+   python start.py
+   ```
+   
+   Alternatively, you can run the Streamlit app directly:
+   ```bash
    streamlit run app.py
    ```
+   
+   The `start.py` script runs all the necessary setup before starting the Streamlit app, including:
+   - Fixing numpy compatibility issues
+   - Setting up fallbacks for missing dependencies
+   - Fixing Streamlit configuration issues
+   - Creating Streamlit configuration for Render
 
 6. **Access the Web Interface**:
    Open your browser and navigate to http://localhost:8501
