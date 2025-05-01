@@ -418,10 +418,13 @@ Netlify is primarily designed for static sites, but we can use it to create a la
 2. **Configure the site**:
    - The build settings are already configured in `netlify.toml`:
      - Build command: `echo 'No build command needed'`
-     - Publish directory: `.`
+     - Publish directory: `public`
    - No additional configuration is needed
    - This approach creates a completely static site that redirects to the Render deployment
    - It avoids all Python and Node.js dependencies
+   - The `public` directory contains:
+     - `index.html`: A static HTML page with automatic and manual redirects
+     - `_redirects`: A Netlify-specific file that handles redirects
 
 3. **Deploy**:
    - Click "Deploy site"
@@ -506,16 +509,18 @@ If you encounter issues during deployment, here are some common problems and sol
    - If you encounter this warning, run `python fix_streamlit_config.py`
 
 9. **Netlify Deployment Issues**:
-   - Error message: `python-build: definition not found: python-3.9`
-   - This is caused by Netlify trying to use a Python version that isn't available
+   - Error message: `python-build: definition not found: python-3.9` or `404 (Not Found)`
+   - These issues are caused by Netlify configuration problems
    - The repository now includes a completely static approach for Netlify:
-     - `netlify.toml`: Specifies no build command and redirect rules
-     - `index.html`: A static HTML page that redirects to the Render deployment
+     - `netlify.toml`: Specifies no build command and the public directory
+     - `public/index.html`: A static HTML page that redirects to the Render deployment
+     - `public/_redirects`: A Netlify-specific file that handles redirects
    - This approach avoids all dependency issues by not using any build process
    - If you encounter deployment issues:
      - Make sure you're using the latest `netlify.toml` configuration
-     - Remove any Python version files (`.python-version`, `runtime.txt`)
-     - Set the publish directory to `.` (root) in the Netlify dashboard
+     - Check that the `public` directory exists and contains `index.html` and `_redirects`
+     - Set the publish directory to `public` in the Netlify dashboard
+     - Try clearing the Netlify cache and redeploying
 
 ### Git Commands for Contributing
 
