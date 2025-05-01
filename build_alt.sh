@@ -139,4 +139,8 @@ python fix_numpy_compatibility.py
 echo "Setting up fallbacks if needed..."
 python setup_fallbacks.py
 
+# Fix Streamlit configuration
+echo "Fixing Streamlit configuration..."
+python fix_streamlit_config.py
+
 echo "Alternative build completed successfully!"

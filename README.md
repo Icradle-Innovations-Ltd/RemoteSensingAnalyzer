@@ -426,6 +426,12 @@ If you encounter issues during deployment, here are some common problems and sol
    - The build scripts now include a fix for this issue by reinstalling numpy and pandas with compatible versions
    - If you encounter this error, run `python fix_numpy_compatibility.py`
 
+8. **Streamlit Configuration Issues**:
+   - Warning message: `Warning: the config option 'server.enableCORS=false' is not compatible with 'server.enableXsrfProtection=true'`
+   - This is caused by incompatible Streamlit configuration settings
+   - The build scripts now include a fix for this issue by updating the Streamlit configuration
+   - If you encounter this warning, run `python fix_streamlit_config.py`
+
 ### Git Commands for Contributing
 
 To contribute to this project, follow these steps:
