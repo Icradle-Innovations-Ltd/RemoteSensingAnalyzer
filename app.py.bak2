@@ -1441,12 +1441,12 @@ if st.session_state.preprocessed_image is not None:
         
 
     
-    # Report Generation Tab
+    # Satellite Orbits Tab
     with main_tabs[5]:
-        st.subheader("Report Generation")
+        st.subheader("Satellite Orbit Visualization")
         st.markdown("""
-        Generate comprehensive reports based on your analysis. These reports can be 
-        downloaded, shared, or saved for future reference.
+        Visualize satellite orbits and data collection paths. This tool helps understand how
+        remote sensing satellites capture imagery and their coverage patterns.
         """)
         
         # Create tabs for different visualizations
@@ -1649,12 +1649,12 @@ if st.session_state.preprocessed_image is not None:
                 - **LIDAR:** Uses laser to measure distance and create 3D models
                 """)
                 
-    # Settings Tab
     with main_tabs[6]:
-        st.subheader("Application Settings")
+        st.subheader("Report Generation")
         st.markdown("""
-        Configure your API keys and satellite data sources here. 
-        These settings will be saved to your .env file for future use.
+        Generate a comprehensive report that combines image information, processing parameters,
+        and AI analysis results. This report can be used for documentation, sharing insights,
+        or supporting decision-making processes.
         """)
         
         # Initialize session state for report
