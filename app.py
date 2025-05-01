@@ -1264,18 +1264,18 @@ if st.session_state.preprocessed_image is not None:
                     max_value=8,
                     value=4,
                     step=1,
-                    key="orbit_duration"
+                    key="orbit_duration_1"
                 )
             
             with col2:
                 show_ground_track = st.checkbox(
                     "Show ground track",
                     value=True,
-                    key="orbit_ground_track"
+                    key="orbit_ground_track_1"
                 )
             
             # Generate animation button
-            if st.button("Generate Orbit Animation", key="generate_orbit_btn"):
+            if st.button("Generate Orbit Animation", key="generate_orbit_btn_1"):
                 with st.spinner(f"Generating orbit animation for {selected_satellite}..."):
                     try:
                         # Generate the orbit animation
@@ -1338,7 +1338,7 @@ if st.session_state.preprocessed_image is not None:
                     value=40.7128,
                     step=0.1,
                     format="%.4f",
-                    key="coverage_lat"
+                    key="coverage_lat_1"
                 )
             
             with col2:
@@ -1349,11 +1349,11 @@ if st.session_state.preprocessed_image is not None:
                     value=-74.0060,
                     step=0.1,
                     format="%.4f",
-                    key="coverage_lon"
+                    key="coverage_lon_1"
                 )
             
             # Generate coverage map button
-            if st.button("Generate Coverage Map", key="generate_coverage_btn"):
+            if st.button("Generate Coverage Map", key="generate_coverage_btn_1"):
                 with st.spinner(f"Generating coverage map for {selected_satellite}..."):
                     try:
                         # Generate the coverage map
@@ -1462,7 +1462,7 @@ if st.session_state.preprocessed_image is not None:
                 "Select satellite:",
                 satellite_options,
                 index=0,
-                key="orbit_satellite_select"
+                key="orbit_satellite_select_2"
             )
             
             # Animation options
@@ -1532,7 +1532,7 @@ if st.session_state.preprocessed_image is not None:
                 "Select satellite:",
                 satellite_options,
                 index=0,
-                key="coverage_satellite_select"
+                key="coverage_satellite_select_2"
             )
             
             # Location input
