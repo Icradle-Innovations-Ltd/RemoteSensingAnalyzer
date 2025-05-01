@@ -23,6 +23,8 @@ from modules import ndvi, classification, map_overlay, documentation
 from modules import ai_providers
 # Import satellite image fetcher module
 from modules import satellite_fetcher
+# Import land cover analysis module
+from modules import land_cover
 
 # Set page configuration
 st.set_page_config(
@@ -206,24 +208,154 @@ with st.sidebar:
                 st.session_state.last_filter_params = filter_params
             
             # Advanced Options Expander
-            with st.expander("Advanced Options"):
+            with st.expander("Advanced Analysis Options"):
+                st.subheader("Vegetation Analysis")
                 if st.session_state.is_geotiff and len(st.session_state.bands) >= 4:
                     if st.button("Compute NDVI"):
                         red_band = image_processor.extract_band(st.session_state.original_image, 2)  # Typically band 3
                         nir_band = image_processor.extract_band(st.session_state.original_image, 3)  # Typically band 4
                         st.session_state.filtered_image = ndvi.compute_ndvi(red_band, nir_band)
                         st.info("NDVI computation complete!")
+                        
+                st.subheader("Land Cover Analysis")
                 
-                if st.button("Apply Texture Classification"):
+                # Land cover classification options
+                num_classes = st.slider("Number of Land Cover Classes", 2, 10, 5, 
+                                       help="Number of distinct land cover types to identify")
+                
+                if st.button("Classify Land Cover"):
                     if st.session_state.preprocessed_image is not None:
-                        st.session_state.filtered_image = classification.texture_classification(
-                            st.session_state.preprocessed_image
-                        )
-                        st.info("Texture classification complete!")
+                        with st.spinner("Classifying land cover..."):
+                            # Perform land cover classification
+                            classified, class_colors = land_cover.classify_land_cover(
+                                st.session_state.preprocessed_image, 
+                                num_classes=num_classes
+                            )
+                            
+                            # Visualize the classification
+                            colored_classification = land_cover.visualize_land_cover(
+                                classified, 
+                                class_colors, 
+                                title="Land Cover Classification"
+                            )
+                            
+                            # Compute statistics
+                            stats = land_cover.compute_land_cover_statistics(
+                                classified, 
+                                num_classes
+                            )
+                            
+                            # Store results in session state
+                            st.session_state.filtered_image = colored_classification
+                            st.session_state.land_cover_stats = stats
+                            st.session_state.land_cover_classes = num_classes
+                            
+                            st.success("Land cover classification complete!")
+                
+                st.subheader("Feature Detection")
+                
+                feature_options = st.selectbox(
+                    "Select feature to detect:",
+                    ["Texture Analysis", "Water Bodies", "Urban Areas", "Frequency Patterns"]
+                )
+                
+                if st.button("Detect Features"):
+                    if st.session_state.preprocessed_image is not None:
+                        with st.spinner(f"Detecting {feature_options}..."):
+                            if feature_options == "Texture Analysis":
+                                # Apply texture classification
+                                st.session_state.filtered_image = classification.texture_classification(
+                                    st.session_state.preprocessed_image
+                                )
+                                st.info("Texture analysis complete!")
+                                
+                            elif feature_options == "Water Bodies":
+                                # Detect water bodies
+                                water_threshold = 0.3  # Default threshold
+                                water_mask = land_cover.detect_water_bodies(
+                                    st.session_state.preprocessed_image, 
+                                    threshold=water_threshold
+                                )
+                                
+                                # Create visualization
+                                water_viz = np.zeros((*water_mask.shape, 3), dtype=np.float32)
+                                water_viz[water_mask, 0] = 0.0  # R
+                                water_viz[water_mask, 1] = 0.0  # G
+                                water_viz[water_mask, 2] = 1.0  # B (blue for water)
+                                
+                                # Overlay on original image
+                                background = np.repeat(
+                                    st.session_state.preprocessed_image[:, :, np.newaxis], 
+                                    3, 
+                                    axis=2
+                                ) if len(st.session_state.preprocessed_image.shape) == 2 else st.session_state.preprocessed_image
+                                
+                                # Combine with 70% opacity for water
+                                water_overlay = 0.7 * water_viz + 0.3 * background
+                                
+                                st.session_state.filtered_image = water_overlay
+                                st.info("Water bodies detection complete!")
+                                
+                            elif feature_options == "Urban Areas":
+                                # Detect urban areas
+                                urban_mask = land_cover.detect_urban_areas(
+                                    st.session_state.preprocessed_image
+                                )
+                                
+                                # Create visualization
+                                urban_viz = np.zeros((*urban_mask.shape, 3), dtype=np.float32)
+                                urban_viz[urban_mask, 0] = 1.0  # R (red for urban)
+                                urban_viz[urban_mask, 1] = 0.3  # G
+                                urban_viz[urban_mask, 2] = 0.3  # B
+                                
+                                # Overlay on original image
+                                background = np.repeat(
+                                    st.session_state.preprocessed_image[:, :, np.newaxis], 
+                                    3, 
+                                    axis=2
+                                ) if len(st.session_state.preprocessed_image.shape) == 2 else st.session_state.preprocessed_image
+                                
+                                # Combine with 70% opacity for urban
+                                urban_overlay = 0.7 * urban_viz + 0.3 * background
+                                
+                                st.session_state.filtered_image = urban_overlay
+                                st.info("Urban areas detection complete!")
+                                
+                            elif feature_options == "Frequency Patterns":
+                                if st.session_state.fft_magnitude is not None:
+                                    # Analyze frequency patterns
+                                    pattern_info = land_cover.analyze_frequency_patterns(
+                                        st.session_state.fft_magnitude
+                                    )
+                                    
+                                    # Store pattern information
+                                    st.session_state.pattern_info = pattern_info
+                                    
+                                    # Create visualization of detected patterns
+                                    freq_viz = np.copy(st.session_state.fft_magnitude)
+                                    
+                                    # Use the filtered image to show the result
+                                    st.session_state.filtered_image = st.session_state.preprocessed_image
+                                    
+                                    st.info(f"Detected {pattern_info['num_patterns']} frequency patterns!")
+                                    
+                                    # Show pattern details
+                                    if pattern_info['num_patterns'] > 0:
+                                        st.write("#### Detected Patterns")
+                                        for i, prop in enumerate(pattern_info['peak_properties']):
+                                            st.write(f"Pattern {i+1}:")
+                                            st.write(f"- Spatial wavelength: {prop['wavelength']:.2f} pixels")
+                                            st.write(f"- Direction: {prop['angle']:.1f}°")
+                                            st.write(f"- Intensity: {prop['intensity']:.3f}")
+                                else:
+                                    st.error("FFT spectrum not available. Please recompute.")
                 
                 # Geo-referenced overlay is only applicable for GeoTIFF
                 if st.session_state.is_geotiff:
-                    st.write("Map overlay functionality available for GeoTIFF")
+                    st.subheader("Geospatial Visualization")
+                    if st.button("Show Map Overlay"):
+                        st.write("Creating map overlay...")
+                        # Map overlay functionality will be implemented here
         
         except Exception as e:
             st.error(f"Error processing image: {str(e)}")
@@ -231,7 +363,7 @@ with st.sidebar:
 # Main content area
 if st.session_state.preprocessed_image is not None:
     # Create tabs for visualization and analysis
-    main_tabs = st.tabs(["Visualization", "AI Analysis", "Report Generation", "Settings"])
+    main_tabs = st.tabs(["Visualization", "Spectral Analysis", "AI Analysis", "Report Generation", "Settings"])
     
     # Visualization Tab
     with main_tabs[0]:
@@ -288,8 +420,329 @@ if st.session_state.preprocessed_image is not None:
                         mime="image/png"
                     )
     
-    # AI Analysis Tab
+    # Spectral Analysis Tab
     with main_tabs[1]:
+        st.subheader("Spectral Analysis")
+        st.markdown("""
+        Analyze the frequency domain characteristics of your satellite imagery to identify spatial patterns,
+        periodic structures, and textural features that may not be visible in the spatial domain.
+        """)
+        
+        # Frequency spectrum visualization
+        if st.session_state.fft_magnitude is not None:
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.subheader("2D Frequency Spectrum")
+                fig, ax = plt.subplots(figsize=(8, 8))
+                im = ax.imshow(np.log1p(st.session_state.fft_magnitude), cmap='inferno')
+                ax.set_title("Log-scaled Magnitude Spectrum")
+                ax.axis('off')
+                fig.colorbar(im, ax=ax, shrink=0.8)
+                st.pyplot(fig)
+                
+                st.markdown("""
+                ### Interpreting the Frequency Spectrum:
+                - **Center point**: Represents the DC component (average brightness)
+                - **Bright spots**: Indicate strong periodic patterns in the image
+                - **Distance from center**: Inversely proportional to the spatial wavelength
+                - **Direction from center**: Perpendicular to the orientation of features
+                """)
+            
+            with col2:
+                st.subheader("Radial Profile")
+                
+                # Calculate radial profile (average magnitude vs. distance from center)
+                y, x = np.indices(st.session_state.fft_magnitude.shape)
+                center = (st.session_state.fft_magnitude.shape[0] // 2, st.session_state.fft_magnitude.shape[1] // 2)
+                r = np.sqrt((x - center[1])**2 + (y - center[0])**2)
+                r = r.astype(int)
+                
+                # Calculate the mean
+                radial_prof = np.bincount(r.ravel(), st.session_state.fft_magnitude.ravel())
+                nr = np.bincount(r.ravel())
+                radial_prof = radial_prof / nr
+                
+                # Plot the radial profile
+                fig, ax = plt.subplots(figsize=(8, 6))
+                ax.plot(radial_prof)
+                ax.set_xlabel('Distance from Center (pixels)')
+                ax.set_ylabel('Average Magnitude')
+                ax.set_title('Radial Profile of FFT Magnitude')
+                ax.grid(True)
+                st.pyplot(fig)
+                
+                st.markdown("""
+                ### Radial Profile Interpretation:
+                - **Peaks**: Indicate dominant spatial frequencies in the image
+                - **Slope**: Overall texture characteristics (steep slope = smooth image)
+                - **High values at low distances**: Indicate large-scale patterns
+                - **High values at large distances**: Indicate fine details or noise
+                """)
+        
+            # Frequency pattern analysis
+            st.subheader("Frequency Pattern Analysis")
+            
+            if st.button("Analyze Frequency Patterns", key="analyze_freq_btn"):
+                with st.spinner("Analyzing frequency patterns..."):
+                    # Analyze patterns in the frequency domain
+                    pattern_info = land_cover.analyze_frequency_patterns(st.session_state.fft_magnitude)
+                    
+                    # Store pattern information
+                    st.session_state.pattern_info = pattern_info
+                    
+                    # Display results
+                    st.write(f"Detected {pattern_info['num_patterns']} significant frequency patterns")
+                    
+                    if pattern_info['num_patterns'] > 0:
+                        # Create a table of pattern properties
+                        pattern_data = []
+                        for i, prop in enumerate(pattern_info['peak_properties']):
+                            pattern_data.append({
+                                "Pattern": i+1,
+                                "Wavelength (pixels)": f"{prop['wavelength']:.2f}",
+                                "Orientation (°)": f"{prop['angle']:.1f}",
+                                "Relative Strength": f"{prop['intensity']:.3f}"
+                            })
+                        
+                        st.table(pattern_data)
+                        
+                        # Create a visualization of the detected patterns
+                        fig, ax = plt.subplots(figsize=(8, 8))
+                        ax.imshow(np.log1p(st.session_state.fft_magnitude), cmap='gray')
+                        
+                        # Mark detected patterns
+                        center_y, center_x = st.session_state.fft_magnitude.shape[0] // 2, st.session_state.fft_magnitude.shape[1] // 2
+                        for i, prop in enumerate(pattern_info['peak_properties']):
+                            # Convert polar coordinates to Cartesian
+                            y = center_y + prop['distance'] * np.sin(prop['angle'] * np.pi / 180)
+                            x = center_x + prop['distance'] * np.cos(prop['angle'] * np.pi / 180)
+                            
+                            # Mark the pattern
+                            ax.plot(x, y, 'ro', markersize=10, alpha=0.7)
+                            ax.text(x+5, y+5, f"{i+1}", color='red', fontsize=12)
+                            
+                            # Also mark the symmetric point
+                            ax.plot(2*center_x - x, 2*center_y - y, 'ro', markersize=10, alpha=0.7)
+                            ax.text(2*center_x - x+5, 2*center_y - y+5, f"{i+1}'", color='red', fontsize=12)
+                        
+                        ax.set_title("Detected Frequency Patterns")
+                        ax.axis('off')
+                        st.pyplot(fig)
+                        
+                        # Interpretation of results
+                        st.subheader("Interpretation")
+                        
+                        # Find dominant pattern
+                        dominant_idx = np.argmax([p['intensity'] for p in pattern_info['peak_properties']])
+                        dominant = pattern_info['peak_properties'][dominant_idx]
+                        
+                        st.markdown(f"""
+                        ### Key Findings:
+                        
+                        - **Dominant pattern**: Pattern {dominant_idx+1} with a wavelength of {dominant['wavelength']:.2f} pixels
+                        - **Orientation**: Main features are oriented at {(dominant['angle']+90)%180:.1f}° from horizontal
+                        - **Spatial frequency**: The image has a characteristic spatial frequency of {1/dominant['wavelength']:.5f} cycles/pixel
+                        
+                        ### Potential Applications:
+                        
+                        - **Land cover classification**: The frequency signature can help distinguish between different terrain types
+                        - **Feature extraction**: The dominant patterns can be used to extract specific landscape elements
+                        - **Change detection**: Comparing frequency signatures over time can reveal landscape changes
+                        """)
+                    else:
+                        st.info("No significant frequency patterns detected. The image may have uniform texture or random patterns.")
+            
+            # Filtering options
+            st.subheader("Custom Frequency Filtering")
+            
+            filter_type = st.radio(
+                "Select filter type:",
+                ["Low-pass", "High-pass", "Band-pass", "Band-stop", "Directional"],
+                key="spectral_filter_type"
+            )
+            
+            # Get the smaller dimension for setting max radius
+            height, width = st.session_state.preprocessed_image.shape
+            min_dim = min(height, width) // 2
+            
+            if filter_type == "Low-pass":
+                cutoff_radius = st.slider(
+                    "Cutoff radius:", 
+                    1, min_dim, min_dim // 4,
+                    help="Frequencies below this radius will be preserved",
+                    key="spectral_lowpass"
+                )
+                filter_params = {
+                    "type": filter_type,
+                    "cutoff_radius": cutoff_radius,
+                    "gaussian_tapering": True
+                }
+                
+            elif filter_type == "High-pass":
+                cutoff_radius = st.slider(
+                    "Cutoff radius:", 
+                    1, min_dim, min_dim // 4,
+                    help="Frequencies above this radius will be preserved",
+                    key="spectral_highpass"
+                )
+                filter_params = {
+                    "type": filter_type,
+                    "cutoff_radius": cutoff_radius,
+                    "gaussian_tapering": True
+                }
+                
+            elif filter_type == "Band-pass":
+                col1, col2 = st.columns(2)
+                with col1:
+                    inner_radius = st.slider(
+                        "Inner radius:", 
+                        1, min_dim - 1, min_dim // 8,
+                        help="Inner boundary of the band to be preserved",
+                        key="spectral_bandpass_inner"
+                    )
+                with col2:
+                    outer_radius = st.slider(
+                        "Outer radius:", 
+                        inner_radius + 1, min_dim, min_dim // 3,
+                        help="Outer boundary of the band to be preserved",
+                        key="spectral_bandpass_outer"
+                    )
+                filter_params = {
+                    "type": "Band-pass",
+                    "inner_radius": inner_radius,
+                    "outer_radius": outer_radius,
+                    "gaussian_tapering": True
+                }
+                
+            elif filter_type == "Band-stop":
+                col1, col2 = st.columns(2)
+                with col1:
+                    inner_radius = st.slider(
+                        "Inner radius:", 
+                        1, min_dim - 1, min_dim // 8,
+                        help="Inner boundary of the band to be removed",
+                        key="spectral_bandstop_inner"
+                    )
+                with col2:
+                    outer_radius = st.slider(
+                        "Outer radius:", 
+                        inner_radius + 1, min_dim, min_dim // 3,
+                        help="Outer boundary of the band to be removed",
+                        key="spectral_bandstop_outer"
+                    )
+                filter_params = {
+                    "type": "Band-stop",
+                    "inner_radius": inner_radius,
+                    "outer_radius": outer_radius,
+                    "gaussian_tapering": True
+                }
+                
+            else:  # Directional filter
+                col1, col2 = st.columns(2)
+                with col1:
+                    angle = st.slider(
+                        "Direction angle (degrees):", 
+                        0, 180, 45,
+                        help="Direction of features to preserve (0° = horizontal, 90° = vertical)",
+                        key="spectral_direction"
+                    )
+                with col2:
+                    width = st.slider(
+                        "Angular width (degrees):", 
+                        5, 90, 30,
+                        help="Width of the directional filter",
+                        key="spectral_width"
+                    )
+                filter_params = {
+                    "type": "Directional",
+                    "angle": angle,
+                    "width": width,
+                    "gaussian_tapering": True
+                }
+            
+            # Apply filter button
+            if st.button("Apply Spectral Filter"):
+                with st.spinner("Applying filter..."):
+                    # Special case for directional filter
+                    if filter_type == "Directional":
+                        # Create a custom directional filter mask
+                        y, x = np.indices(st.session_state.fft_shifted.shape)
+                        center_y, center_x = y.shape[0] // 2, x.shape[1] // 2
+                        y = y - center_y
+                        x = x - center_x
+                        
+                        # Convert to polar coordinates
+                        r = np.sqrt(x**2 + y**2)
+                        theta = np.arctan2(y, x) * 180 / np.pi
+                        
+                        # Normalize angle to 0-180 range
+                        theta = np.mod(theta, 180)
+                        
+                        # Create the filter mask
+                        half_width = filter_params['width'] / 2
+                        angle = filter_params['angle']
+                        angle_diff = np.minimum(np.abs(theta - angle), np.abs(theta - (angle + 180)))
+                        
+                        # Apply Gaussian tapering around the specified direction
+                        if filter_params['gaussian_tapering']:
+                            sigma = half_width / 3
+                            filter_mask = np.exp(-(angle_diff**2) / (2 * sigma**2))
+                        else:
+                            filter_mask = (angle_diff <= half_width).astype(float)
+                        
+                        # Apply the mask to the FFT
+                        filtered_fft = st.session_state.fft_shifted * filter_mask
+                        
+                        # Inverse FFT
+                        filtered_img = np.real(np.fft.ifft2(np.fft.ifftshift(filtered_fft)))
+                        
+                        # Normalize to 0-1 range
+                        filtered_img = (filtered_img - filtered_img.min()) / (filtered_img.max() - filtered_img.min())
+                    else:
+                        # For standard filters (low-pass, high-pass, band-pass, band-stop)
+                        # Create filter mask
+                        if filter_type == "Band-pass":
+                            # Convert band-pass to "not band-stop"
+                            band_stop_mask = filters.create_filter_mask(
+                                st.session_state.fft_shifted.shape,
+                                {
+                                    "type": "Band-stop",
+                                    "inner_radius": filter_params["inner_radius"],
+                                    "outer_radius": filter_params["outer_radius"],
+                                    "gaussian_tapering": filter_params["gaussian_tapering"]
+                                }
+                            )
+                            filter_mask = 1 - band_stop_mask
+                        else:
+                            filter_mask = filters.create_filter_mask(
+                                st.session_state.fft_shifted.shape,
+                                filter_params
+                            )
+                        
+                        # Apply filter
+                        filtered_img = filters.apply_filter(
+                            st.session_state.fft_shifted,
+                            filter_mask
+                        )
+                    
+                    # Store the filtered image and filter parameters
+                    st.session_state.filtered_image = filtered_img
+                    st.session_state.last_filter_params = filter_params
+                    
+                    st.success(f"{filter_type} filter applied successfully!")
+                    
+                    # Show the filtered image
+                    fig, ax = plt.subplots(figsize=(8, 8))
+                    ax.imshow(filtered_img, cmap='gray')
+                    ax.set_title(f"Filtered Image ({filter_type})")
+                    ax.axis('off')
+                    st.pyplot(fig)
+        else:
+            st.info("Please load an image first to enable spectral analysis.")
+    
+    # AI Analysis Tab
+    with main_tabs[2]:
         st.subheader("AI-Powered Image Analysis")
         st.markdown("""
         Our AI analysis uses advanced computer vision models to interpret both your original and filtered images.
