@@ -407,32 +407,26 @@ This repository includes a `render.yaml` file that defines the infrastructure ne
 
 Netlify is primarily designed for static sites, but we can use it to create a landing page that redirects to our Render deployment:
 
-#### Option 1: Deploy from GitHub (Recommended)
+#### Option 1: Deploy using Netlify using Netlify Drop (Recommended)
 
-1. **Create a new site on Netlify**:
+1. **Download the standalone Netlify site site**:
+   - Download the `netlify-standalone` folder from the repository
+   - This folder contains everything needed for a static site that redirects to the Render deployment
+
+2. **Deploy using Netlify Drop**:
+   - Go to [Netlify Drop](https://app.netlify.com/drop)
+   - Drag and drop the entire `netlify-standalone` folder onto the Netlify Drop area
+   - Wait for the deployment to complete
+   - Your site will be available at a Netlify subdomain (e.g., random-name.netlify.app)
+
+3. **Configure your site (optional)**:
    - Sign in to your Netlify account
-   - Go to the Dashboard and click "Add new site" > "Import an existing project"
-   - Connect your GitHub account if you haven't already
-   - Select the repository: `Icradle-Innovations-Ltd/RemoteSensingAnalyzer`
-
-2. **Configure the site**:
-   - Set the base directory to `netlify-static`
-   - Set the publish directory to `.`
-   - Set the build command to `echo 'Static site, no build needed'`
-   - This approach uses a completely separate directory for Netlify deployment
-   - It avoids all issues with Python dependencies and other build requirements
-   - The `netlify-static` directory contains:
-     - `index.html`: A static HTML page with automatic and manual redirects
-     - `_redirects`: A Netlify-specific file that handles redirects
-     - `netlify.toml`: Configuration for Netlify
-
-3. **Deploy**:
-   - Click "Deploy site"
-   - Netlify will automatically build and deploy your landing page
+   - Go to the Dashboard and find your newly created site
+   - You can customize the domain, add a custom domain, or configure other settings
 
 4. **Access Your Landing Page**:
    - Once deployment is complete, your landing page will be available at the URL provided by Netlify
-   - The landing page will automatically redirect to your Render deployment
+   - The landing page will your Render deployment
 
 #### Option 2: Deploy from Your Local Repository
 
@@ -511,28 +505,30 @@ If you encounter issues during deployment, here are some common problems and sol
 9. **Netlify Deployment Issues**:
    - Error messages like `python-build: definition not found`, `404 (Not Found)`, or `No matching distribution found for streamlit==1.45.0`
    - These issues are caused by Netlify trying to install Python dependencies
-   - The repository now includes a completely separate directory for Netlify deployment:
-     - `netlify-static/`: A directory containing only the files needed for Netlify
-     - `netlify-static/index.html`: A static HTML page that redirects to the Render deployment
-     - `netlify-static/_redirects`: A Netlify-specific file that handles redirects
-     - `netlify-static/netlify.toml`: Configuration for Netlify
-   - This approach avoids all dependency issues by completely separating the Netlify deployment from the main application
-   - If you encounter deployment issues:
-     - Make sure you're using the `netlify-static` directory as the base directory
-     - Set the publish directory to `.` in the Netlify dashboard
-     - Set the build command to `echo 'Static site, no build needed'`
-     - Try clearing the Netlify cache and redeploying
-     - In the Netlify dashboard, go to Site settings > Build & deploy > Continuous Deployment > Build settings and set:
-       - Base directory: `netlify-static`
-       - Build command: `echo 'Static site, no build needed'`
-       - Publish directory: `.`
+   - The recommended solution is to use the standalone Netlify site:
+     - Download the `netlify-standalone` folder from the repository
+     - Deploy it using Netlify Drop (https://app.netlify.com/drop)
+     - This approach completely avoids all dependency issues
+   - The standalone site contains:
+     - `index.html`: A static HTML page that redirects to the Recommended solution is to use the standalone Netlify site:
+     - Download the `netlify-standalone` folder from the repository
+     - Deploy it using Netlify Drop (https://app.netlify.com/drop)
+     - This approach completely avoids all dependency issues
+   - The standalone site contains:
+     - `nder deployment
+     - `_redirects`: A Netlify-specific file that handles redirects
+     - `netlify.toml`: Configuration for Netlify
+   - If you still encounter issues:
+     - Make sure you're using the entire entire `netlify-standalone` folder
+     - Try using a different browser for the Netlify Drop
+     - Check that the Render deployment is working correctly
 
 ### Git Commands for Contributing
 
 To contribute to this project, follow these steps:
 
 1. **Fork the repository**:
-   - Visit https://github.com/Icradle-Innovations-Ltd/RemoteSensingAnalyzer
+   - If you still encounterVisit https://github.com/Icradle-Innovations-Ltd/RemoteSensingAnalyzer
    - Click the "Fork" button in the top-right corner
 
 2. **Clone your fork**:
