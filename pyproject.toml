@@ -19,4 +19,5 @@ dependencies = [
     "scipy>=1.15.2",
     "sentinelsat>=1.2.1",
     "streamlit>=1.45.0",
+    "trafilatura>=2.0.0",
 ]

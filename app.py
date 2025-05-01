@@ -25,6 +25,8 @@ from modules import ai_providers
 from modules import satellite_fetcher
 # Import land cover analysis module
 from modules import land_cover
+# Import time series and change detection modules
+from modules import time_series, change_detection
 
 # Set page configuration
 st.set_page_config(
@@ -363,7 +365,7 @@ with st.sidebar:
 # Main content area
 if st.session_state.preprocessed_image is not None:
     # Create tabs for visualization and analysis
-    main_tabs = st.tabs(["Visualization", "Spectral Analysis", "AI Analysis", "Report Generation", "Settings"])
+    main_tabs = st.tabs(["Visualization", "Spectral Analysis", "Change Detection", "AI Analysis", "Report Generation", "Settings"])
     
     # Visualization Tab
     with main_tabs[0]:
@@ -741,8 +743,255 @@ if st.session_state.preprocessed_image is not None:
         else:
             st.info("Please load an image first to enable spectral analysis.")
     
-    # AI Analysis Tab
+    # Change Detection Tab
     with main_tabs[2]:
+        st.subheader("Change Detection")
+        st.markdown("""
+        Detect and analyze changes between satellite images. Upload two images to compare 
+        or use the frequency-filtered results to highlight specific changes.
+        """)
+        
+        # Initialize session state for second image
+        if 'second_image' not in st.session_state:
+            st.session_state.second_image = None
+        if 'change_results' not in st.session_state:
+            st.session_state.change_results = None
+        
+        # File uploader for second image
+        st.subheader("Upload Comparison Image")
+        second_uploaded_file = st.file_uploader("Upload second image for comparison", 
+                                      type=["jpg", "jpeg", "png", "tif", "tiff"],
+                                      key="second_image_uploader")
+        
+        if second_uploaded_file is not None:
+            try:
+                # Process the uploaded file
+                image_data2, is_geotiff2, bands2 = image_processor.process_upload(second_uploaded_file)
+                
+                # Store in session state
+                st.session_state.second_image = image_data2
+                
+                # Process for comparison (ensure grayscale)
+                if len(image_data2.shape) > 2:
+                    image2_gray = np.mean(image_data2, axis=2)
+                else:
+                    image2_gray = image_data2
+                
+                st.session_state.second_image_processed = image2_gray
+                
+                # Display the second image
+                st.subheader("Comparison Image")
+                fig, ax = plt.subplots(figsize=(8, 8))
+                ax.imshow(image2_gray, cmap='gray')
+                ax.axis('off')
+                st.pyplot(fig)
+                
+            except Exception as e:
+                st.error(f"Error processing second image: {str(e)}")
+        
+        # Change detection options
+        st.subheader("Change Detection Settings")
+        
+        # Method selector
+        method = st.selectbox(
+            "Change detection method:",
+            ["Difference", "Ratio", "Regression"],
+            index=0,
+            help="Different methods for detecting changes between images"
+        )
+        
+        # Method mapping
+        method_map = {
+            "Difference": "diff",
+            "Ratio": "ratio",
+            "Regression": "regression"
+        }
+        
+        # Threshold
+        threshold = st.slider(
+            "Change threshold:", 
+            0.05, 0.5, 0.1, 0.01,
+            help="Higher values detect only more significant changes"
+        )
+        
+        # Minimum change area size
+        min_size = st.slider(
+            "Minimum change area (pixels):", 
+            5, 100, 20,
+            help="Minimum size of an area to be considered a significant change"
+        )
+        
+        # Detect changes button
+        if st.button("Detect Changes"):
+            # Check if we have both images
+            if st.session_state.preprocessed_image is not None and st.session_state.second_image_processed is not None:
+                with st.spinner("Detecting changes..."):
+                    # Ensure images have the same size
+                    if st.session_state.preprocessed_image.shape != st.session_state.second_image_processed.shape:
+                        st.error("Images must have the same dimensions for change detection.")
+                    else:
+                        # Run change detection
+                        change_map, change_magnitude = change_detection.detect_image_changes(
+                            st.session_state.preprocessed_image,
+                            st.session_state.second_image_processed,
+                            method=method_map[method],
+                            threshold=threshold
+                        )
+                        
+                        # Cluster changes
+                        labeled_changes, num_changes, change_stats = change_detection.cluster_changes(
+                            change_map,
+                            change_magnitude,
+                            min_size=min_size
+                        )
+                        
+                        # Analyze changes
+                        change_analysis = change_detection.analyze_changes(
+                            st.session_state.preprocessed_image,
+                            st.session_state.second_image_processed,
+                            change_stats
+                        )
+                        
+                        # Create RGB visualization
+                        change_rgb = change_detection.create_change_rgb(
+                            st.session_state.preprocessed_image,
+                            st.session_state.second_image_processed,
+                            change_map
+                        )
+                        
+                        # Store results
+                        st.session_state.change_results = {
+                            'change_map': change_map,
+                            'change_magnitude': change_magnitude,
+                            'labeled_changes': labeled_changes,
+                            'num_changes': num_changes,
+                            'change_stats': change_stats,
+                            'change_analysis': change_analysis,
+                            'change_rgb': change_rgb
+                        }
+                        
+                        # Show the results
+                        st.session_state.filtered_image = change_rgb
+                        
+                        st.success(f"Detected {num_changes} significant changes!")
+            else:
+                st.error("Please ensure both images are uploaded before detecting changes.")
+        
+        # Display change results if available
+        if st.session_state.change_results:
+            results = st.session_state.change_results
+            
+            # Display change map
+            st.subheader("Change Visualization")
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                fig, ax = plt.subplots(figsize=(8, 8))
+                ax.imshow(results['change_rgb'])
+                ax.set_title("Changes Highlighted in Red")
+                ax.axis('off')
+                st.pyplot(fig)
+            
+            with col2:
+                fig, ax = plt.subplots(figsize=(8, 8))
+                ax.imshow(results['change_magnitude'], cmap='hot')
+                ax.set_title("Change Magnitude")
+                ax.axis('off')
+                fig.colorbar(ax.imshow(results['change_magnitude'], cmap='hot'), ax=ax, shrink=0.8)
+                st.pyplot(fig)
+            
+            # Show change analysis
+            st.subheader("Change Analysis")
+            
+            if results['num_changes'] > 0:
+                # Create a table of change properties
+                change_data = []
+                for i, analysis in enumerate(results['change_analysis']):
+                    change_data.append({
+                        "ID": i+1,
+                        "Type": analysis['change_type'],
+                        "Size (pixels)": analysis['area'],
+                        "Confidence": f"{analysis['confidence']*100:.1f}%",
+                        "Intensity Change": f"{analysis['intensity_change']:.3f}"
+                    })
+                
+                st.table(change_data)
+                
+                # Generate a report
+                report = change_detection.generate_change_report(
+                    st.session_state.preprocessed_image,
+                    st.session_state.second_image_processed,
+                    results['change_analysis']
+                )
+                
+                # Store report
+                st.session_state.change_report = report
+                
+                # Show report
+                with st.expander("View Complete Change Report"):
+                    st.markdown(report)
+            else:
+                st.info("No significant changes detected with current settings. Try adjusting the threshold or method.")
+        
+        # Alternative usage: Time series simulator
+        st.subheader("Time Series Simulation")
+        st.markdown("""
+        If you don't have multiple images of the same area, you can simulate a time series
+        using the filtered image as a changed version.
+        """)
+        
+        if st.button("Simulate Time Series"):
+            if st.session_state.preprocessed_image is not None and st.session_state.filtered_image is not None:
+                with st.spinner("Simulating time series..."):
+                    # Create a simple time series with original and filtered image
+                    # This is a simulation - in a real application, you would use actual time series data
+                    time_series_data = [st.session_state.preprocessed_image, st.session_state.filtered_image]
+                    
+                    # Create some sample dates (just for demonstration)
+                    from datetime import datetime, timedelta
+                    today = datetime.now()
+                    one_year_ago = today - timedelta(days=365)
+                    dates = [one_year_ago, today]
+                    
+                    # Analyze trend
+                    slope, p_value = time_series.analyze_trend(time_series_data, dates)
+                    
+                    # Calculate seasonal metrics (this is just a simulation)
+                    metrics = time_series.calculate_seasonal_metrics(time_series_data, dates)
+                    
+                    # Create visualizations
+                    trend_viz = time_series.create_trend_visualization(slope, p_value)
+                    
+                    # Generate report
+                    ts_report = time_series.generate_time_series_report(metrics)
+                    
+                    # Store results
+                    st.session_state.time_series_results = {
+                        'slope': slope,
+                        'p_value': p_value,
+                        'metrics': metrics,
+                        'trend_viz': trend_viz,
+                        'report': ts_report
+                    }
+                    
+                    # Show the trend visualization
+                    st.session_state.filtered_image = trend_viz[:, :, :3]  # Remove alpha channel
+                    
+                    st.success("Time series simulation complete!")
+            else:
+                st.error("Please ensure both original and filtered images are available.")
+        
+        # Display time series results if available
+        if 'time_series_results' in st.session_state and st.session_state.time_series_results:
+            results = st.session_state.time_series_results
+            
+            # Show time series report
+            with st.expander("View Time Series Report (Simulated)"):
+                st.markdown(results['report'])
+    
+    # AI Analysis Tab
+    with main_tabs[3]:
         st.subheader("AI-Powered Image Analysis")
         st.markdown("""
         Our AI analysis uses advanced computer vision models to interpret both your original and filtered images.
@@ -842,7 +1091,7 @@ if st.session_state.preprocessed_image is not None:
             st.info("Click 'Analyze with AI' to get insights about your imagery.")
     
     # Report Generation Tab
-    with main_tabs[2]:
+    with main_tabs[4]:
         st.subheader("Report Generation")
         st.markdown("""
         Generate a comprehensive report that combines image information, processing parameters,
@@ -890,7 +1139,7 @@ if st.session_state.preprocessed_image is not None:
         else:
             st.info("Click 'Generate Report' to create a comprehensive analysis report.")
     # Settings Tab
-    with main_tabs[3]:
+    with main_tabs[5]:
         st.subheader("Application Settings")
         st.markdown("""
         Configure your API keys and satellite data sources here. 
