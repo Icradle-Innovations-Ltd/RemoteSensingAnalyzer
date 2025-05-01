@@ -1496,13 +1496,56 @@ else:
 # Footer with social media links and expanded features
 st.markdown("---")
 
-# Main footer content
+# Set dark theme for footer
+st.markdown("""
+<style>
+    .footer-container {
+        background-color: #262730;
+        padding: 20px;
+        border-radius: 5px;
+        margin-top: 20px;
+        color: white;
+    }
+    .footer-title {
+        color: white;
+        font-size: 1.2rem;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+    .footer-text {
+        color: white;
+        font-size: 0.9rem;
+    }
+    .footer-link {
+        color: #4c8bf5;
+        text-decoration: none;
+    }
+    .footer-link:hover {
+        text-decoration: underline;
+    }
+    .footer-icon {
+        filter: invert(1);
+    }
+    .footer-copyright {
+        background-color: #1e1e1e;
+        padding: 10px;
+        border-radius: 5px;
+        margin-top: 20px;
+        text-align: center;
+        color: white;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# Main footer content in a dark-themed container
+st.markdown('<div class="footer-container">', unsafe_allow_html=True)
+
 footer_cols = st.columns([1, 1, 1])
 
 with footer_cols[0]:
-    st.markdown("### Remote Sensing Data Analyzer")
-    st.markdown("A tool for environmental scientists and GIS analysts")
-    st.markdown("© 2025 Icradle Innovations Ltd. All rights reserved.")
+    st.markdown('<div class="footer-title">Remote Sensing Data Analyzer</div>', unsafe_allow_html=True)
+    st.markdown('<div class="footer-text">A tool for environmental scientists and GIS analysts</div>', unsafe_allow_html=True)
+    st.markdown('<div class="footer-text">© 2025 Icradle Innovations Ltd. All rights reserved.</div>', unsafe_allow_html=True)
     
     # Add home button
     if st.button("🏠 Home"):
@@ -1511,26 +1554,26 @@ with footer_cols[0]:
         st.rerun()
 
 with footer_cols[1]:
-    st.markdown("### Connect With Us")
+    st.markdown('<div class="footer-title">Connect With Us</div>', unsafe_allow_html=True)
     
-    # Social media links with nicer styling
+    # Social media links with nicer styling - using white icons and text
     social_links = """
     <div style="display: flex; flex-direction: column; gap: 10px;">
         <div style="display: flex; align-items: center; gap: 10px;">
-            <a href="{github_url}" target="_blank" style="display: flex; align-items: center; text-decoration: none; color: inherit;">
-                <img src="https://img.icons8.com/ios-glyphs/30/000000/github.png" width="20" height="20">
+            <a href="{github_url}" target="_blank" style="display: flex; align-items: center; text-decoration: none; color: white;">
+                <img src="https://img.icons8.com/ios-glyphs/30/ffffff/github.png" width="20" height="20" class="footer-icon">
                 <span style="margin-left: 5px;">GitHub</span>
             </a>
         </div>
         <div style="display: flex; align-items: center; gap: 10px;">
-            <a href="{website_url}" target="_blank" style="display: flex; align-items: center; text-decoration: none; color: inherit;">
-                <img src="https://img.icons8.com/ios-glyphs/30/000000/domain.png" width="20" height="20">
+            <a href="{website_url}" target="_blank" style="display: flex; align-items: center; text-decoration: none; color: white;">
+                <img src="https://img.icons8.com/ios-glyphs/30/ffffff/domain.png" width="20" height="20" class="footer-icon">
                 <span style="margin-left: 5px;">Website</span>
             </a>
         </div>
         <div style="display: flex; align-items: center; gap: 10px;">
-            <a href="{linkedin_url}" target="_blank" style="display: flex; align-items: center; text-decoration: none; color: inherit;">
-                <img src="https://img.icons8.com/ios-glyphs/30/000000/linkedin.png" width="20" height="20">
+            <a href="{linkedin_url}" target="_blank" style="display: flex; align-items: center; text-decoration: none; color: white;">
+                <img src="https://img.icons8.com/ios-glyphs/30/ffffff/linkedin.png" width="20" height="20" class="footer-icon">
                 <span style="margin-left: 5px;">LinkedIn</span>
             </a>
         </div>
@@ -1544,26 +1587,26 @@ with footer_cols[1]:
     st.markdown(social_links, unsafe_allow_html=True)
 
 with footer_cols[2]:
-    st.markdown("### More Resources")
+    st.markdown('<div class="footer-title">More Resources</div>', unsafe_allow_html=True)
     
-    # Additional links and resources
+    # Additional links and resources with white text
     additional_links = """
     <div style="display: flex; flex-direction: column; gap: 10px;">
         <div style="display: flex; align-items: center; gap: 10px;">
-            <a href="{youtube_url}" target="_blank" style="display: flex; align-items: center; text-decoration: none; color: inherit;">
-                <img src="https://img.icons8.com/ios-glyphs/30/000000/youtube-play.png" width="20" height="20">
+            <a href="{youtube_url}" target="_blank" style="display: flex; align-items: center; text-decoration: none; color: white;">
+                <img src="https://img.icons8.com/ios-glyphs/30/ffffff/youtube-play.png" width="20" height="20" class="footer-icon">
                 <span style="margin-left: 5px;">YouTube Tutorials</span>
             </a>
         </div>
         <div style="display: flex; align-items: center; gap: 10px;">
-            <a href="{twitter_url}" target="_blank" style="display: flex; align-items: center; text-decoration: none; color: inherit;">
-                <img src="https://img.icons8.com/ios-glyphs/30/000000/twitter.png" width="20" height="20">
+            <a href="{twitter_url}" target="_blank" style="display: flex; align-items: center; text-decoration: none; color: white;">
+                <img src="https://img.icons8.com/ios-glyphs/30/ffffff/twitter.png" width="20" height="20" class="footer-icon">
                 <span style="margin-left: 5px;">Twitter</span>
             </a>
         </div>
         <div style="display: flex; align-items: center; gap: 10px;">
-            <a href="{facebook_url}" target="_blank" style="display: flex; align-items: center; text-decoration: none; color: inherit;">
-                <img src="https://img.icons8.com/ios-glyphs/30/000000/facebook-new.png" width="20" height="20">
+            <a href="{facebook_url}" target="_blank" style="display: flex; align-items: center; text-decoration: none; color: white;">
+                <img src="https://img.icons8.com/ios-glyphs/30/ffffff/facebook-new.png" width="20" height="20" class="footer-icon">
                 <span style="margin-left: 5px;">Facebook</span>
             </a>
         </div>
@@ -1576,11 +1619,12 @@ with footer_cols[2]:
     
     st.markdown(additional_links, unsafe_allow_html=True)
 
-# Copyright notice in a full-width bar
+# Close the footer container
+st.markdown('</div>', unsafe_allow_html=True)
+
+# Copyright notice in a dark-themed bar
 st.markdown("""
-<div style="background-color: #f0f2f6; padding: 10px; border-radius: 5px; margin-top: 20px; text-align: center;">
-    <p style="margin: 0; font-size: 0.8rem;">
-        Created by Icradle Innovations Ltd. | All data analysis and visualizations are for informational purposes only.
-    </p>
+<div class="footer-copyright">
+    Created by Icradle Innovations Ltd. | All data analysis and visualizations are for informational purposes only.
 </div>
 """, unsafe_allow_html=True)
