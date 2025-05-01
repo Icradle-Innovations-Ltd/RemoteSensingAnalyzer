@@ -1,0 +1,29 @@
+{
+  "name": "remote-sensing-analyzer",
+  "version": "1.0.0",
+  "description": "A comprehensive Streamlit web application for analyzing satellite and remote sensing imagery",
+  "main": "index.html",
+  "scripts": {
+    "build": "chmod +x netlify_build.sh && ./netlify_build.sh"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Icradle-Innovations-Ltd/RemoteSensingAnalyzer.git"
+  },
+  "keywords": [
+    "remote-sensing",
+    "satellite-imagery",
+    "geospatial",
+    "streamlit",
+    "python"
+  ],
+  "author": "Icradle Innovations Ltd",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Icradle-Innovations-Ltd/RemoteSensingAnalyzer/issues"
+  },
+  "homepage": "https://github.com/Icradle-Innovations-Ltd/RemoteSensingAnalyzer#readme"
+}

@@ -403,6 +403,54 @@ This repository includes a `render.yaml` file that defines the infrastructure ne
 > - `--server.address 0.0.0.0` binds the server to all network interfaces, making it publicly accessible
 > - Do not change this command unless you know what you're doing
 
+### Deployment on Netlify
+
+Netlify is primarily designed for static sites, but we can use it to create a landing page that redirects to our Render deployment:
+
+#### Option 1: Deploy from GitHub
+
+1. **Create a new site on Netlify**:
+   - Sign in to your Netlify account
+   - Go to the Dashboard and click "Add new site" > "Import an existing project"
+   - Connect your GitHub account if you haven't already
+   - Select the repository: `Icradle-Innovations-Ltd/RemoteSensingAnalyzer`
+
+2. **Configure the site**:
+   - The build settings are already configured in `netlify.toml`:
+     - Build command: `chmod +x netlify_build.sh && ./netlify_build.sh`
+     - Publish directory: `.`
+   - No additional configuration is needed
+
+3. **Deploy**:
+   - Click "Deploy site"
+   - Netlify will automatically build and deploy your landing page
+
+4. **Access Your Landing Page**:
+   - Once deployment is complete, your landing page will be available at the URL provided by Netlify
+   - The landing page will automatically redirect to your Render deployment
+
+#### Option 2: Deploy from Your Local Repository
+
+1. **Push your code to GitHub**:
+   ```bash
+   # Initialize Git repository (if not already done)
+   git init
+   
+   # Add the remote repository
+   git remote add origin https://github.com/your-username/RemoteSensingAnalyzer.git
+   
+   # Add all files
+   git add .
+   
+   # Commit changes
+   git commit -m "Initial commit"
+   
+   # Push to GitHub
+   git push -u origin main
+   ```
+
+2. **Follow the steps in Option 1 to deploy from GitHub**
+
 ### Troubleshooting Deployment Issues
 
 If you encounter issues during deployment, here are some common problems and solutions:
@@ -454,6 +502,16 @@ If you encounter issues during deployment, here are some common problems and sol
    - This is caused by incompatible Streamlit configuration settings
    - The build scripts now include a fix for this issue by updating the Streamlit configuration
    - If you encounter this warning, run `python fix_streamlit_config.py`
+
+9. **Netlify Deployment Issues**:
+   - Error message: `python-build: definition not found: python-3.11.0`
+   - This is caused by Netlify trying to use a Python version that isn't available
+   - The repository now includes configuration files for Netlify:
+     - `netlify.toml`: Specifies the build command and environment
+     - `runtime.txt`: Specifies the Python version (3.9.18)
+     - `.python-version`: Another way to specify the Python version
+     - `netlify_build.sh`: A custom build script for Netlify
+   - If you encounter this error, make sure these files are present and correctly configured
 
 ### Git Commands for Contributing
 
