@@ -31,7 +31,33 @@ def check_and_setup_fallbacks():
         else:
             print("❌ Fallback file image_processor_fallback.py not found!")
     
-    # Add more dependency checks here as needed
+    # Check for folium
+    try:
+        import folium
+        print("✅ folium is available")
+    except ImportError:
+        print("⚠️ folium is not available, setting up fallback...")
+        # Check if fallback exists
+        if os.path.exists('modules/map_overlay_fallback.py'):
+            # Backup original if it exists and we haven't already
+            if os.path.exists('modules/map_overlay.py') and not os.path.exists('modules/map_overlay.py.bak'):
+                shutil.copy2('modules/map_overlay.py', 'modules/map_overlay.py.bak')
+                print("  Original modules/map_overlay.py backed up to modules/map_overlay.py.bak")
+            
+            # Copy fallback to main file
+            shutil.copy2('modules/map_overlay_fallback.py', 'modules/map_overlay.py')
+            print("  Fallback map overlay installed")
+        else:
+            print("❌ Fallback file modules/map_overlay_fallback.py not found!")
+    
+    # Check for numpy/pandas compatibility
+    try:
+        import numpy
+        import pandas
+        print("✅ numpy and pandas are available")
+    except ImportError as e:
+        print(f"⚠️ Issue with numpy/pandas: {e}")
+        print("  Run fix_numpy_compatibility.py to resolve")
     
     print("Dependency check complete")
 

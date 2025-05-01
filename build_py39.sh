@@ -140,6 +140,10 @@ pip install folium==0.19.5 sentinelsat==1.2.1 earthengine-api==1.5.13 || echo "W
 echo "Installing any remaining packages from requirements.txt..."
 pip install -r requirements.txt --no-deps || echo "Warning: Some packages from requirements.txt failed to install"
 
+# Fix numpy compatibility issues
+echo "Fixing numpy compatibility issues..."
+python fix_numpy_compatibility.py
+
 # Run the fallback setup script
 echo "Setting up fallbacks if needed..."
 python setup_fallbacks.py

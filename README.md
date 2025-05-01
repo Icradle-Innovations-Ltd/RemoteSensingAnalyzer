@@ -420,6 +420,12 @@ If you encounter issues during deployment, here are some common problems and sol
    - The build scripts are designed to handle this by skipping system package installation
    - If you encounter this error, make sure you're using the updated build scripts
 
+7. **NumPy Compatibility Issues**:
+   - Error message: `ValueError: numpy.dtype size changed, may indicate binary incompatibility. Expected 96 from C header, got 88 from PyObject`
+   - This is caused by incompatible versions of numpy and pandas
+   - The build scripts now include a fix for this issue by reinstalling numpy and pandas with compatible versions
+   - If you encounter this error, run `python fix_numpy_compatibility.py`
+
 ### Git Commands for Contributing
 
 To contribute to this project, follow these steps:

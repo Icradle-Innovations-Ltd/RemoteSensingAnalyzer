@@ -131,6 +131,10 @@ pip install --only-binary :all: earthengine-api==1.5.13 || pip install earthengi
 echo "Installing any remaining packages from requirements.txt..."
 pip install -r requirements.txt --no-deps || true
 
+# Fix numpy compatibility issues
+echo "Fixing numpy compatibility issues..."
+python fix_numpy_compatibility.py
+
 # Run the fallback setup script
 echo "Setting up fallbacks if needed..."
 python setup_fallbacks.py

@@ -99,6 +99,10 @@ echo "Installing remaining requirements..."
 grep -v "pyproj" requirements.txt > requirements_filtered.txt
 pip install -r requirements_filtered.txt || echo "Warning: Some packages failed to install"
 
+# Fix numpy compatibility issues
+echo "Fixing numpy compatibility issues..."
+python fix_numpy_compatibility.py
+
 # Run the fallback setup script
 echo "Setting up fallbacks if needed..."
 python setup_fallbacks.py
