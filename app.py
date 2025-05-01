@@ -1493,38 +1493,94 @@ else:
             except Exception as e:
                 st.error(f"Error saving satellite credentials: {str(e)}")
 
-# Footer with social media links
+# Footer with social media links and expanded features
 st.markdown("---")
-footer_col1, footer_col2, footer_col3 = st.columns([2, 1, 1])
 
-with footer_col1:
-    st.markdown("Remote Sensing Data Analyzer with Frequency-Domain Filtering | A tool for environmental scientists and GIS analysts")
+# Main footer content
+footer_cols = st.columns([1, 1, 1])
 
-with footer_col2:
+with footer_cols[0]:
+    st.markdown("### Remote Sensing Data Analyzer")
+    st.markdown("A tool for environmental scientists and GIS analysts")
+    st.markdown("© 2025 Icradle Innovations Ltd. All rights reserved.")
+    
     # Add home button
     if st.button("🏠 Home"):
         st.session_state.uploaded_file = None
         st.session_state.image_data = None
-        st.experimental_rerun()
+        st.rerun()
 
-with footer_col3:
-    # Social media links
+with footer_cols[1]:
+    st.markdown("### Connect With Us")
+    
+    # Social media links with nicer styling
     social_links = """
-    <div style="display: flex; justify-content: space-around;">
-        <a href="{github_url}" target="_blank"><img src="https://img.icons8.com/ios-glyphs/30/000000/github.png" width="25" height="25"></a>
-        <a href="{website_url}" target="_blank"><img src="https://img.icons8.com/ios-glyphs/30/000000/domain.png" width="25" height="25"></a>
-        <a href="{linkedin_url}" target="_blank"><img src="https://img.icons8.com/ios-glyphs/30/000000/linkedin.png" width="25" height="25"></a>
-        <a href="{youtube_url}" target="_blank"><img src="https://img.icons8.com/ios-glyphs/30/000000/youtube-play.png" width="25" height="25"></a>
-        <a href="{twitter_url}" target="_blank"><img src="https://img.icons8.com/ios-glyphs/30/000000/twitter.png" width="25" height="25"></a>
-        <a href="{facebook_url}" target="_blank"><img src="https://img.icons8.com/ios-glyphs/30/000000/facebook-new.png" width="25" height="25"></a>
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <a href="{github_url}" target="_blank" style="display: flex; align-items: center; text-decoration: none; color: inherit;">
+                <img src="https://img.icons8.com/ios-glyphs/30/000000/github.png" width="20" height="20">
+                <span style="margin-left: 5px;">GitHub</span>
+            </a>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <a href="{website_url}" target="_blank" style="display: flex; align-items: center; text-decoration: none; color: inherit;">
+                <img src="https://img.icons8.com/ios-glyphs/30/000000/domain.png" width="20" height="20">
+                <span style="margin-left: 5px;">Website</span>
+            </a>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <a href="{linkedin_url}" target="_blank" style="display: flex; align-items: center; text-decoration: none; color: inherit;">
+                <img src="https://img.icons8.com/ios-glyphs/30/000000/linkedin.png" width="20" height="20">
+                <span style="margin-left: 5px;">LinkedIn</span>
+            </a>
+        </div>
     </div>
     """.format(
         github_url=os.environ.get("GITHUB_URL", "#"),
         website_url=os.environ.get("WEBSITE_URL", "#"),
-        linkedin_url=os.environ.get("LINKEDIN_URL", "#"),
+        linkedin_url=os.environ.get("LINKEDIN_URL", "#")
+    )
+    
+    st.markdown(social_links, unsafe_allow_html=True)
+
+with footer_cols[2]:
+    st.markdown("### More Resources")
+    
+    # Additional links and resources
+    additional_links = """
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <a href="{youtube_url}" target="_blank" style="display: flex; align-items: center; text-decoration: none; color: inherit;">
+                <img src="https://img.icons8.com/ios-glyphs/30/000000/youtube-play.png" width="20" height="20">
+                <span style="margin-left: 5px;">YouTube Tutorials</span>
+            </a>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <a href="{twitter_url}" target="_blank" style="display: flex; align-items: center; text-decoration: none; color: inherit;">
+                <img src="https://img.icons8.com/ios-glyphs/30/000000/twitter.png" width="20" height="20">
+                <span style="margin-left: 5px;">Twitter</span>
+            </a>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <a href="{facebook_url}" target="_blank" style="display: flex; align-items: center; text-decoration: none; color: inherit;">
+                <img src="https://img.icons8.com/ios-glyphs/30/000000/facebook-new.png" width="20" height="20">
+                <span style="margin-left: 5px;">Facebook</span>
+            </a>
+        </div>
+    </div>
+    """.format(
         youtube_url=os.environ.get("YOUTUBE_URL", "#"),
         twitter_url=os.environ.get("TWITTER_URL", "#"),
         facebook_url=os.environ.get("FACEBOOK_URL", "#")
     )
     
-    st.markdown(social_links, unsafe_allow_html=True)
+    st.markdown(additional_links, unsafe_allow_html=True)
+
+# Copyright notice in a full-width bar
+st.markdown("""
+<div style="background-color: #f0f2f6; padding: 10px; border-radius: 5px; margin-top: 20px; text-align: center;">
+    <p style="margin: 0; font-size: 0.8rem;">
+        Created by Icradle Innovations Ltd. | All data analysis and visualizations are for informational purposes only.
+    </p>
+</div>
+""", unsafe_allow_html=True)
