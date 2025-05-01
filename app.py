@@ -8,12 +8,20 @@ import time
 import base64
 import json
 from datetime import datetime
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Import custom modules
 import image_processor
 import filters
 import utils
-from modules import ndvi, classification, map_overlay, ai_analysis, documentation
+from modules import ndvi, classification, map_overlay, documentation
+# Import AI providers module (replaces ai_analysis)
+from modules import ai_providers
+# Import satellite image fetcher module
+from modules import satellite_fetcher
 
 # Set page configuration
 st.set_page_config(
@@ -298,11 +306,16 @@ if st.session_state.preprocessed_image is not None:
                     # Get filter type
                     filter_type = st.session_state.last_filter_params.get('type', 'Unknown')
                     
-                    # Run AI analysis
-                    analysis_results = ai_analysis.analyze_satellite_image(
+                    # Get selected AI provider
+                    if 'selected_ai_provider' not in st.session_state:
+                        st.session_state.selected_ai_provider = "openai"
+                        
+                    # Run AI analysis with selected provider
+                    analysis_results = ai_providers.analyze_satellite_image(
                         st.session_state.preprocessed_image,
                         st.session_state.filtered_image,
-                        filter_type
+                        filter_type,
+                        provider=st.session_state.selected_ai_provider
                     )
                     
                     # Store results
