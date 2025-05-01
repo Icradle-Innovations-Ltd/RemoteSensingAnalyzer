@@ -53,27 +53,41 @@ pip install --no-binary :all: --no-build-isolation GDAL==${GDAL_VERSION}
 echo "Installing pyproj from pre-built wheel..."
 
 # Try multiple approaches for pyproj
-# First try: Use a pre-built wheel for pyproj 3.0.1 (older but more compatible)
-pip install --only-binary :all: pyproj==3.0.1 || true
+# First try: Latest version with no build isolation and no cache
+echo "Attempt 1: Installing pyproj with no build isolation and no cache..."
+pip install pyproj --no-build-isolation --no-cache-dir || true
 
-# Second try: If that fails, try with no-build-isolation
+# Second try: Specific newer version (3.5.0)
 if ! pip list | grep -q pyproj; then
-    echo "First pyproj install attempt failed, trying with no-build-isolation..."
-    pip install --no-build-isolation pyproj==3.0.1 || true
+    echo "Attempt 2: Installing pyproj 3.5.0..."
+    pip install pyproj==3.5.0 --no-build-isolation --no-cache-dir || true
 fi
 
-# Third try: If that still fails, try with an even older version
+# Third try: Use a pre-built wheel for pyproj 3.0.1 (older but more compatible)
 if ! pip list | grep -q pyproj; then
-    echo "Second pyproj install attempt failed, trying with older version..."
+    echo "Attempt 3: Installing pyproj 3.0.1 from binary wheel..."
+    pip install --only-binary :all: pyproj==3.0.1 || true
+fi
+
+# Fourth try: Try with an even older version
+if ! pip list | grep -q pyproj; then
+    echo "Attempt 4: Installing pyproj 2.6.1 from binary wheel..."
     pip install --only-binary :all: pyproj==2.6.1 || true
 fi
 
-# Fourth try: Last resort - download wheel directly and install
+# Fifth try: Download wheel directly and install
 if ! pip list | grep -q pyproj; then
-    echo "All pyproj install attempts failed, downloading wheel directly..."
+    echo "Attempt 5: Downloading wheel directly..."
     # For Linux x86_64 Python 3.11
     wget https://files.pythonhosted.org/packages/d1/8c/e1b2a9a7eadf2c3a5a5e42e2a1c3d8c9e9c2a7a4c5be65a7a8f9a0e5f5a/pyproj-3.0.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
     pip install pyproj-3.0.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl || true
+fi
+
+# Sixth try: Try with Python 3.9 compatible wheel
+if ! pip list | grep -q pyproj; then
+    echo "Attempt 6: Trying Python 3.9 compatible wheel..."
+    wget https://files.pythonhosted.org/packages/4a/c0/b1c6d5e2a3d1c5a0d8e9a9c2b0b1b6c6e4f6f3b6e2a8d8b4818e971a5f1/pyproj-3.0.1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+    pip install --force-reinstall pyproj-3.0.1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl || true
 fi
 
 echo "Installing other geospatial packages..."

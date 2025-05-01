@@ -146,7 +146,7 @@ This application provides a powerful platform for environmental scientists, GIS 
 ## Technical Stack
 
 ### Core Technologies
-- **Python 3.11+**: Main programming language
+- **Python 3.9+**: Main programming language (Python 3.9 recommended for best compatibility)
 - **Streamlit**: Web application framework
 - **NumPy**: Numerical computations
 - **SciPy**: Scientific computing
@@ -204,7 +204,7 @@ This application provides a powerful platform for environmental scientists, GIS 
 
 ### Software Requirements
 
-Python 3.11+ and the following packages:
+Python 3.9+ and the following packages:
 
 ```
 anthropic>=0.50.0
@@ -225,6 +225,24 @@ sentinelsat>=1.2.1
 streamlit>=1.45.0
 trafilatura>=2.0.0
 ```
+
+### Python Version Compatibility
+
+This application has been tested with the following Python versions:
+
+- **Python 3.9**: Recommended for deployment on Render and other cloud platforms
+  - Best compatibility with geospatial libraries like pyproj
+  - Use `./build_py39.sh` for deployment on Render
+
+- **Python 3.8**: Good compatibility with all dependencies
+  - Works well for local development
+
+- **Python 3.10**: Generally compatible but may require specific package versions
+  - Use `pip install --no-build-isolation` for problematic packages
+
+- **Python 3.11**: May have compatibility issues with some geospatial libraries
+  - Specifically, pyproj compilation may fail
+  - Use pre-built wheels when possible
 
 ### Browser Compatibility
 
@@ -289,6 +307,7 @@ The app will be available at http://0.0.0.0:5000
    
    > **Note**: If you encounter build issues with geospatial dependencies (especially pyproj), try one of these alternative build scripts:
    > - `./build_alt.sh` - Uses pre-built wheels and multiple fallback options for pyproj
+   > - `./build_py39.sh` - Uses Python 3.9 instead of 3.11 (recommended for pyproj compatibility)
    > - `./build_minimal.sh` - Uses system packages and minimal wrappers as a last resort
 
 3. **Set Environment Variables**:
@@ -367,9 +386,12 @@ If you encounter issues during deployment, here are some common problems and sol
 
 1. **pyproj Compilation Errors**:
    - Error message: `Cannot assign type 'void (void *, int, const char *) except * nogil' to 'PJ_LOG_FUNCTION'`
-   - Solution 1: Use the alternative build script by changing the build command to `./build_alt.sh`
+   - **Recommended Solution**: Use Python 3.9 which is specified in the pyproject.toml file
+     - The project is configured to use Python 3.9 by default on Render
+     - You can also use the build command `./build_py39.sh` for additional setup
+   - Alternative Solution 1: Use the alternative build script by changing the build command to `./build_alt.sh`
      - This script tries multiple approaches to install pyproj, including pre-built wheels
-   - Solution 2: If that still fails, use the minimal build script: `./build_minimal.sh`
+   - Alternative Solution 2: If all else fails, use the minimal build script: `./build_minimal.sh`
      - This script uses system packages and creates minimal wrappers for problematic packages
 
 2. **GDAL Installation Issues**:
@@ -387,6 +409,12 @@ If you encounter issues during deployment, here are some common problems and sol
 5. **Missing Environment Variables**:
    - If the application fails to start, check that all required environment variables are set in the Render dashboard
    - Refer to the `.env.example` file for the required variables
+
+6. **Read-only File System Errors**:
+   - Error message: `Read-only file system` or `List directory /var/lib/apt/lists/partial is missing`
+   - This is normal in Render's build environment which has a read-only file system
+   - The build scripts are designed to handle this by skipping system package installation
+   - If you encounter this error, make sure you're using the updated build scripts
 
 ### Git Commands for Contributing
 
