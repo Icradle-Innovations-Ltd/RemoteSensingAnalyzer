@@ -15,6 +15,75 @@ This application provides a powerful platform for environmental scientists, GIS 
 - Satellite orbit visualization
 - Comprehensive reporting
 
+## Quick Start Guide
+
+### Windows Installation
+
+1. **Run the Installation Script**:
+   ```
+   install.bat
+   ```
+   This script will:
+   - Create a virtual environment
+   - Install GDAL using pre-built wheels
+   - Install all other dependencies
+
+2. **Configure Environment**:
+   Create a `.env` file with your API keys (optional for basic functionality):
+   ```
+   OPENAI_API_KEY=your_openai_key
+   ANTHROPIC_API_KEY=your_anthropic_key
+   XAI_API_KEY=your_xai_key
+   EARTHENGINE_USER=your_ee_username
+   EARTHENGINE_PASSWORD=your_ee_password
+   SENTINEL_USER=your_sentinel_username
+   SENTINEL_PASSWORD=your_sentinel_password
+   ```
+
+3. **Run the Application**:
+   ```
+   .venv\Scripts\activate
+   streamlit run app.py
+   ```
+
+### Manual Installation
+
+1. **Create a Virtual Environment**:
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+   ```
+
+2. **Install GDAL**:
+   ```bash
+   # On Windows:
+   python install_gdal.py
+   
+   # On Linux:
+   sudo apt-get install libgdal-dev
+   pip install gdal==$(gdal-config --version)
+   
+   # On macOS with Homebrew:
+   brew install gdal
+   pip install gdal
+   ```
+
+3. **Install Other Dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Configure Environment**:
+   Create a `.env` file with your API keys (optional for basic functionality)
+
+5. **Run the Application**:
+   ```bash
+   streamlit run app.py
+   ```
+
+6. **Access the Web Interface**:
+   Open your browser and navigate to http://localhost:8501
+
 ## Key Features
 
 ### Image Processing & Analysis
@@ -124,6 +193,17 @@ This application provides a powerful platform for environmental scientists, GIS 
 
 ## Requirements
 
+### System Requirements
+
+- **Operating System**: Windows 10/11, macOS 10.15+, or Linux (Ubuntu 20.04+)
+- **Processor**: Multi-core processor (Intel i5/AMD Ryzen 5 or better recommended)
+- **Memory**: Minimum 8GB RAM (16GB+ recommended for large GeoTIFF processing)
+- **Storage**: 2GB free disk space for installation, plus space for your data
+- **Internet Connection**: Required for satellite data fetching and AI analysis features
+- **Display**: 1920x1080 resolution or higher recommended
+
+### Software Requirements
+
 Python 3.11+ and the following packages:
 
 ```
@@ -145,6 +225,14 @@ sentinelsat>=1.2.1
 streamlit>=1.45.0
 trafilatura>=2.0.0
 ```
+
+### Browser Compatibility
+
+The web interface works best with:
+- Google Chrome (latest version)
+- Mozilla Firefox (latest version)
+- Microsoft Edge (latest version)
+- Safari (latest version)
 
 ## Setup & Deployment
 
@@ -308,3 +396,51 @@ The application will be available at http://0.0.0.0:5000
 ## Support & Contact
 
 For technical support, feature requests, or bug reports, please use the project's issue tracker or contact our support team through the application's help interface.
+
+## Sample Data and Basic Usage
+
+### Sample Data Sources
+
+You can use the following sources to obtain sample satellite imagery for testing:
+
+1. **USGS Earth Explorer**: https://earthexplorer.usgs.gov/
+   - Landsat imagery
+   - MODIS data
+   - Digital Elevation Models
+
+2. **Copernicus Open Access Hub**: https://scihub.copernicus.eu/
+   - Sentinel-1 (Radar)
+   - Sentinel-2 (Optical)
+
+3. **NASA Earthdata**: https://earthdata.nasa.gov/
+   - Various satellite products
+   - Global datasets
+
+### Basic Usage Workflow
+
+1. **Upload an Image**:
+   - Use the sidebar to upload a satellite image (JPG, PNG, or GeoTIFF)
+   - For GeoTIFF files, you can select specific bands to analyze
+
+2. **Apply Filters**:
+   - Choose a filter type (Low-pass, High-pass, or Band-stop)
+   - Adjust filter parameters using the sliders
+   - View the filtered result in real-time
+
+3. **Advanced Analysis**:
+   - Use the Advanced Analysis Options in the sidebar to access:
+     - NDVI calculation (for multi-band images)
+     - Land cover classification
+     - Change detection (when comparing multiple images)
+     - AI-powered analysis (requires API keys)
+
+4. **Export Results**:
+   - Download processed images
+   - Generate and export analysis reports
+   - Save visualizations for presentations
+
+### Troubleshooting
+
+- **Memory Issues**: For large GeoTIFF files, the application automatically resizes images to improve performance
+- **API Connection Errors**: Check your internet connection and verify API keys in the .env file
+- **Missing Dependencies**: Ensure all required packages are installed using `pip install -r requirements.txt`

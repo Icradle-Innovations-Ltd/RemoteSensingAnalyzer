@@ -16,3 +16,15 @@ scipy>=1.15.2
 sentinelsat>=1.2.1
 streamlit>=1.45.0
 trafilatura>=2.0.0
+pandas>=2.0.0
+plotly>=5.13.1
+seaborn>=0.12.2
+# Use a pre-built wheel for GDAL instead of compiling from source
+# Comment out the direct GDAL requirement
+# gdal>=3.4.3
+pyproj>=3.3.0
+aiohttp>=3.8.4
+beautifulsoup4>=4.12.2
+tqdm>=4.65.0
+pyyaml>=6.0
+joblib>=1.2.0

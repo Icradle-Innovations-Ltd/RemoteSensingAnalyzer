@@ -1917,16 +1917,16 @@ st.markdown("""
         padding: 20px;
         border-radius: 5px;
         margin-top: 20px;
-        color: white;
+        color: black;
     }
     .footer-title {
-        color: white;
+        color: black;
         font-size: 1.2rem;
         font-weight: bold;
         margin-bottom: 10px;
     }
     .footer-text {
-        color: white;
+        color: black;
         font-size: 0.9rem;
     }
     .footer-link {
@@ -1940,12 +1940,12 @@ st.markdown("""
         filter: invert(1);
     }
     .footer-copyright {
-        background-color: #1e1e1e;
+        background-color: #ffff;
         padding: 10px;
         border-radius: 5px;
         margin-top: 20px;
         text-align: center;
-        color: white;
+        color: black;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -1969,24 +1969,24 @@ with footer_cols[0]:
 with footer_cols[1]:
     st.markdown('<div class="footer-title">Connect With Us</div>', unsafe_allow_html=True)
     
-    # Social media links with nicer styling - using white icons and text
+    # Social media links with nicer styling - using black icons and text
     social_links = """
     <div style="display: flex; flex-direction: column; gap: 10px;">
         <div style="display: flex; align-items: center; gap: 10px;">
-            <a href="{github_url}" target="_blank" style="display: flex; align-items: center; text-decoration: none; color: white;">
-                <img src="https://img.icons8.com/ios-glyphs/30/ffffff/github.png" width="20" height="20" class="footer-icon">
+            <a href="{github_url}" target="_blank" style="display: flex; align-items: center; text-decoration: none; color: black;">
+                <img src="https://img.icons8.com/ios-glyphs/30/000000/github.png" width="20" height="20">
                 <span style="margin-left: 5px;">GitHub</span>
             </a>
         </div>
         <div style="display: flex; align-items: center; gap: 10px;">
-            <a href="{website_url}" target="_blank" style="display: flex; align-items: center; text-decoration: none; color: white;">
-                <img src="https://img.icons8.com/ios-glyphs/30/ffffff/domain.png" width="20" height="20" class="footer-icon">
+            <a href="{website_url}" target="_blank" style="display: flex; align-items: center; text-decoration: none; color: black;">
+                <img src="https://img.icons8.com/ios-glyphs/30/000000/domain.png" width="20" height="20">
                 <span style="margin-left: 5px;">Website</span>
             </a>
         </div>
         <div style="display: flex; align-items: center; gap: 10px;">
-            <a href="{linkedin_url}" target="_blank" style="display: flex; align-items: center; text-decoration: none; color: white;">
-                <img src="https://img.icons8.com/ios-glyphs/30/ffffff/linkedin.png" width="20" height="20" class="footer-icon">
+            <a href="{linkedin_url}" target="_blank" style="display: flex; align-items: center; text-decoration: none; color: black;">
+                <img src="https://img.icons8.com/ios-glyphs/30/000000/linkedin.png" width="20" height="20">
                 <span style="margin-left: 5px;">LinkedIn</span>
             </a>
         </div>
@@ -2002,24 +2002,24 @@ with footer_cols[1]:
 with footer_cols[2]:
     st.markdown('<div class="footer-title">More Resources</div>', unsafe_allow_html=True)
     
-    # Additional links and resources with white text
+    # Additional links and resources with black text
     additional_links = """
     <div style="display: flex; flex-direction: column; gap: 10px;">
         <div style="display: flex; align-items: center; gap: 10px;">
-            <a href="{youtube_url}" target="_blank" style="display: flex; align-items: center; text-decoration: none; color: white;">
-                <img src="https://img.icons8.com/ios-glyphs/30/ffffff/youtube-play.png" width="20" height="20" class="footer-icon">
+            <a href="{youtube_url}" target="_blank" style="display: flex; align-items: center; text-decoration: none; color: black;">
+                <img src="https://img.icons8.com/ios-glyphs/30/000000/youtube-play.png" width="20" height="20">
                 <span style="margin-left: 5px;">YouTube Tutorials</span>
             </a>
         </div>
         <div style="display: flex; align-items: center; gap: 10px;">
-            <a href="{twitter_url}" target="_blank" style="display: flex; align-items: center; text-decoration: none; color: white;">
-                <img src="https://img.icons8.com/ios-glyphs/30/ffffff/twitter.png" width="20" height="20" class="footer-icon">
+            <a href="{twitter_url}" target="_blank" style="display: flex; align-items: center; text-decoration: none; color: black;">
+                <img src="https://img.icons8.com/ios-glyphs/30/000000/twitter.png" width="20" height="20">
                 <span style="margin-left: 5px;">Twitter</span>
             </a>
         </div>
         <div style="display: flex; align-items: center; gap: 10px;">
-            <a href="{facebook_url}" target="_blank" style="display: flex; align-items: center; text-decoration: none; color: white;">
-                <img src="https://img.icons8.com/ios-glyphs/30/ffffff/facebook-new.png" width="20" height="20" class="footer-icon">
+            <a href="{facebook_url}" target="_blank" style="display: flex; align-items: center; text-decoration: none; color: black;">
+                <img src="https://img.icons8.com/ios-glyphs/30/000000/facebook-new.png" width="20" height="20">
                 <span style="margin-left: 5px;">Facebook</span>
             </a>
         </div>
